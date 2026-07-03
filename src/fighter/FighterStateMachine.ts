@@ -43,8 +43,7 @@ export class FighterStateMachine {
       return;
     }
 
-    if (actions.jumpPressed) {
-      this.fighter.jump();
+    if (actions.jumpPressed && this.fighter.jump()) {
       this.audio.playJump();
     }
 

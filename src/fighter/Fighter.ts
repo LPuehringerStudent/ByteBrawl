@@ -8,6 +8,9 @@ export class Fighter {
   stocks: number = 3;
   invincibleFrames: number = 0;
   hitstunFrames: number = 0;
+  maxAirJumps = 2;
+  airJumpsRemaining = 2;
+  private wasGrounded = false;
 
   private config: FighterConfig;
 
@@ -58,10 +61,20 @@ export class Fighter {
     this.sprite.setVelocityY(value);
   }
 
-  jump(): void {
+  jump(): boolean {
     if (this.isGrounded) {
       this.sprite.setVelocityY(-this.config.jumpSpeed);
+      this.airJumpsRemaining = this.maxAirJumps;
+      return true;
     }
+
+    if (this.airJumpsRemaining > 0) {
+      this.sprite.setVelocityY(-this.config.jumpSpeed);
+      this.airJumpsRemaining--;
+      return true;
+    }
+
+    return false;
   }
 
   faceDirection(dir: number): void {
@@ -109,6 +122,12 @@ export class Fighter {
     } else {
       this.sprite.setAlpha(1);
     }
+
+    const grounded = this.isGrounded;
+    if (grounded && !this.wasGrounded) {
+      this.airJumpsRemaining = this.maxAirJumps;
+    }
+    this.wasGrounded = grounded;
   }
 
   getConfig(): FighterConfig {

@@ -28,7 +28,7 @@ export const FIGHTER_P1_CONFIG: FighterConfig = {
   name: 'Byte',
   maxHealth: 100,
   runSpeed: 120,
-  jumpSpeed: 260,
+  jumpSpeed: 380,
   weight: 1,
   spriteKey: 'fighter-p1',
   attacks: {
@@ -66,7 +66,7 @@ export const FIGHTER_P2_CONFIG: FighterConfig = {
   name: 'Nibble',
   maxHealth: 100,
   runSpeed: 140,
-  jumpSpeed: 250,
+  jumpSpeed: 360,
   weight: 0.9,
   spriteKey: 'fighter-p2',
   attacks: {
