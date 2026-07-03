@@ -47,6 +47,8 @@ export class FighterStateMachine {
       this.audio.playJump();
     }
 
+    this.fighter.droppingThrough = actions.moveY > 0;
+
     if (actions.attackLight && this.attackCooldown === 0) {
       this.startAttack('lightAttack', 'light');
       return;

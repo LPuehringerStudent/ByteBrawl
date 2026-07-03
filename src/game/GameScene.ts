@@ -85,8 +85,20 @@ export class GameScene extends Phaser.Scene {
     this.player1.stocks = GAME_RULES_CONFIG.startingStocks;
     this.player2.stocks = GAME_RULES_CONFIG.startingStocks;
 
-    this.physics.add.collider(this.player1.sprite, this.stage.getPlatformLayer());
-    this.physics.add.collider(this.player2.sprite, this.stage.getPlatformLayer());
+    this.physics.add.collider(
+      this.player1.sprite,
+      this.stage.getPlatformLayer(),
+      undefined,
+      this.handlePlatformCollision,
+      this,
+    );
+    this.physics.add.collider(
+      this.player2.sprite,
+      this.stage.getPlatformLayer(),
+      undefined,
+      this.handlePlatformCollision,
+      this,
+    );
 
     this.inputRouter = new InputRouter(this.input.keyboard!);
     this.p1Input = new PlayerInput(this.inputRouter, P1_KEYS);
@@ -175,5 +187,26 @@ export class GameScene extends Phaser.Scene {
     this.uiManager.destroy();
     this.offscreenIndicator.destroy();
     this.inputRouter.destroy();
+  }
+
+  private handlePlatformCollision(
+    playerSprite: unknown,
+    tile: unknown,
+  ): boolean {
+    // TODO: The small platforms are fundamentally different to the base stage.
+    // You cannot phase through the base stage.
+    const sprite = playerSprite as Phaser.Physics.Arcade.Sprite;
+    const tileObj = tile as Phaser.Tilemaps.Tile;
+    const fighter =
+      sprite === this.player1.sprite ? this.player1 : this.player2;
+    const body = sprite.body as Phaser.Physics.Arcade.Body;
+
+    const isBaseStage = tileObj.getTop() >= 160;
+    if (isBaseStage) return true;
+
+    if (fighter.droppingThrough) return false;
+    if (body.velocity.y < 0) return false;
+
+    return body.bottom <= tileObj.getTop() + 4;
   }
 }

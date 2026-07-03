@@ -47,6 +47,18 @@ export class UIManager {
       color: '#ffffff',
       fontFamily: 'Arial, sans-serif',
     }).setOrigin(0.5, 0);
+
+    // TODO: The UI should always be onscreen.
+    // Pin all HUD elements to the camera so they stay fixed during zoom/pan.
+    for (const text of [
+      this.p1DamageText,
+      this.p2DamageText,
+      this.p1StocksText,
+      this.p2StocksText,
+      this.timerText,
+    ]) {
+      text.setScrollFactor(0);
+    }
   }
 
   update(): void {
@@ -74,7 +86,7 @@ export class UIManager {
       color: '#ffff00',
       fontFamily: 'Arial, sans-serif',
     });
-    this.winText.setOrigin(0.5, 0.5);
+    this.winText.setOrigin(0.5, 0.5).setScrollFactor(0);
   }
 
   destroy(): void {

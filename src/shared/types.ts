@@ -1,5 +1,6 @@
 export interface ActionFrame {
   moveX: number; // -1 (left) to 1 (right), 0 if neutral
+  moveY: number; // -1 (up) to 1 (down), 0 if neutral
   jumpPressed: boolean;
   jumpHeld: boolean;
   attackLight: boolean;

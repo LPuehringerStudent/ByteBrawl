@@ -10,6 +10,7 @@ export class Fighter {
   hitstunFrames: number = 0;
   maxAirJumps = 2;
   airJumpsRemaining = 2;
+  droppingThrough = false;
   private wasGrounded = false;
 
   private config: FighterConfig;
