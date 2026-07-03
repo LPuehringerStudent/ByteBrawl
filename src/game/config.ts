@@ -18,7 +18,7 @@ export const STAGE_CONFIG: StageConfig = {
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
   ],
-  blastZone: { x: -48, y: -120, width: 416, height: 412 },
+  blastZone: { x: -160, y: -180, width: 640, height: 540 },
   player1Spawn: { x: 110, y: 110 },
   player2Spawn: { x: 210, y: 110 },
 };

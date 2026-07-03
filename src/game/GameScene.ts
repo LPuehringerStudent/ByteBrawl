@@ -8,6 +8,7 @@ import { AssetLoader } from '../shared/AssetLoader';
 import { AudioManager } from '../shared/AudioManager';
 import { CameraController } from './CameraController';
 import { GameRules, GameRulesConfig } from './GameRules';
+import { OffscreenIndicator } from './OffscreenIndicator';
 import { Stage } from './Stage';
 import { UIManager } from './UIManager';
 import { FIGHTER_P1_CONFIG, FIGHTER_P2_CONFIG, STAGE_CONFIG } from './config';
@@ -51,6 +52,7 @@ export class GameScene extends Phaser.Scene {
   private gameRules!: GameRules;
   private uiManager!: UIManager;
   private cameraController!: CameraController;
+  private offscreenIndicator!: OffscreenIndicator;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -119,18 +121,23 @@ export class GameScene extends Phaser.Scene {
     );
 
     const camera = this.cameras.main;
-    camera.setBounds(-120, -180, 560, 460);
+    camera.setBounds(-200, -240, 720, 620);
     camera.centerOn(STAGE_CONFIG.width / 2, STAGE_CONFIG.height / 2);
 
+    const deadzone = new Phaser.Geom.Rectangle(-80, -100, 480, 380);
     this.cameraController = new CameraController(
       camera,
       this.player1,
       this.player2,
+      { deadzone },
     );
+
+    this.offscreenIndicator = new OffscreenIndicator(this);
   }
 
   update(_time: number, delta: number): void {
     this.cameraController.update();
+    this.offscreenIndicator.update(this.cameraController.getOffscreenPlayers());
 
     if (this.gameRules.matchState !== 'active') {
       this.uiManager.update();
@@ -166,6 +173,7 @@ export class GameScene extends Phaser.Scene {
   destroy(): void {
     this.stage.destroy();
     this.uiManager.destroy();
+    this.offscreenIndicator.destroy();
     this.inputRouter.destroy();
   }
 }
