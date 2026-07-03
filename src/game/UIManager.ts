@@ -3,9 +3,11 @@ import { Fighter } from '../fighter/Fighter';
 import { GameRules, MatchState } from './GameRules';
 
 export class UIManager {
+  private p1Icon: Phaser.GameObjects.Image;
   private p1NameText: Phaser.GameObjects.Text;
   private p1DamageText: Phaser.GameObjects.Text;
   private p1StocksText: Phaser.GameObjects.Text;
+  private p2Icon: Phaser.GameObjects.Image;
   private p2NameText: Phaser.GameObjects.Text;
   private p2DamageText: Phaser.GameObjects.Text;
   private p2StocksText: Phaser.GameObjects.Text;
@@ -30,7 +32,7 @@ export class UIManager {
     const stocksStyle = { ...textStyle, fontSize: '9px' };
 
     // Player 1 panel (top left).
-    this.createIcon(14, 14, this.player1.sprite.texture.key, false);
+    this.p1Icon = this.createIcon(14, 14, this.player1.sprite.texture.key, false);
     this.p1NameText = scene.add.text(34, 10, this.player1.getConfig().name, {
       ...nameStyle,
       color: '#00ffff',
@@ -42,7 +44,7 @@ export class UIManager {
     this.p1StocksText = scene.add.text(34, 42, 'Stocks: 3', stocksStyle);
 
     // Player 2 panel (top right).
-    this.createIcon(width - 14, 14, this.player2.sprite.texture.key, true);
+    this.p2Icon = this.createIcon(width - 14, 14, this.player2.sprite.texture.key, true);
     this.p2NameText = scene.add.text(width - 34, 10, this.player2.getConfig().name, {
       ...nameStyle,
       color: '#ff00ff',
@@ -59,12 +61,20 @@ export class UIManager {
       fontSize: '16px',
     }).setOrigin(0.5, 0);
 
-    // Pin every HUD element to the camera.
-    for (const obj of scene.children.list) {
-      if (obj instanceof Phaser.GameObjects.Text || obj instanceof Phaser.GameObjects.Image) {
-        obj.setScrollFactor(0);
-        obj.setDepth(100);
-      }
+    // Pin every HUD element to the camera so it stays fixed on screen.
+    for (const obj of [
+      this.p1Icon,
+      this.p1NameText,
+      this.p1DamageText,
+      this.p1StocksText,
+      this.p2Icon,
+      this.p2NameText,
+      this.p2DamageText,
+      this.p2StocksText,
+      this.timerText,
+    ]) {
+      obj.setScrollFactor(0);
+      obj.setDepth(100);
     }
   }
 
@@ -83,14 +93,16 @@ export class UIManager {
     }
   }
 
-  private createIcon(x: number, y: number, texture: string, rightAligned: boolean): void {
+  private createIcon(
+    x: number,
+    y: number,
+    texture: string,
+    rightAligned: boolean,
+  ): Phaser.GameObjects.Image {
     const icon = this.scene.add.image(x, y, texture);
     icon.setScale(1.5);
-    if (rightAligned) {
-      icon.setOrigin(1, 0);
-    } else {
-      icon.setOrigin(0, 0);
-    }
+    icon.setOrigin(rightAligned ? 1 : 0, 0);
+    return icon;
   }
 
   private showWinOverlay(state: MatchState): void {
@@ -107,9 +119,11 @@ export class UIManager {
   }
 
   destroy(): void {
+    this.p1Icon.destroy();
     this.p1NameText.destroy();
     this.p1DamageText.destroy();
     this.p1StocksText.destroy();
+    this.p2Icon.destroy();
     this.p2NameText.destroy();
     this.p2DamageText.destroy();
     this.p2StocksText.destroy();
