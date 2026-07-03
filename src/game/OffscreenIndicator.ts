@@ -7,7 +7,10 @@ const INDICATOR_RADIUS = 6;
 export class OffscreenIndicator {
   private indicators: Map<Fighter, Phaser.GameObjects.Graphics> = new Map();
 
-  constructor(private scene: Phaser.Scene) {}
+  constructor(
+    private scene: Phaser.Scene,
+    private layer?: Phaser.GameObjects.Layer,
+  ) {}
 
   update(offscreenPlayers: OffscreenPlayer[]): void {
     const seen = new Set<Fighter>();
@@ -21,6 +24,9 @@ export class OffscreenIndicator {
       let indicator = this.indicators.get(fighter);
       if (!indicator) {
         indicator = this.scene.add.graphics();
+        if (this.layer) {
+          this.layer.add(indicator);
+        }
         this.indicators.set(fighter, indicator);
       }
 

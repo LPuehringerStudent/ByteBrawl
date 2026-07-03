@@ -21,7 +21,10 @@ export class HitboxManager {
 
   private hitboxIdCounter = 0;
 
-  constructor(private scene: Phaser.Scene) {}
+  constructor(
+    private scene: Phaser.Scene,
+    private layer?: Phaser.GameObjects.Layer,
+  ) {}
 
   spawnHitbox(
     attacker: Fighter,
@@ -38,6 +41,10 @@ export class HitboxManager {
     sprite.body!.setSize(width, height);
     sprite.body!.setImmovable(true);
     sprite.body!.allowGravity = false;
+
+    if (this.layer) {
+      this.layer.add(sprite);
+    }
 
     const id = `hb-${this.hitboxIdCounter++}`;
     this.activeHitboxes.set(id, {

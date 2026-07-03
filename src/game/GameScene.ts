@@ -53,6 +53,8 @@ export class GameScene extends Phaser.Scene {
   private uiManager!: UIManager;
   private cameraController!: CameraController;
   private offscreenIndicator!: OffscreenIndicator;
+  private gameLayer!: Phaser.GameObjects.Layer;
+  private uiLayer!: Phaser.GameObjects.Layer;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -61,6 +63,9 @@ export class GameScene extends Phaser.Scene {
   create(): void {
     this.physics.world.setBounds(0, 0, STAGE_CONFIG.width, STAGE_CONFIG.height);
     this.physics.world.gravity.y = 800;
+
+    this.gameLayer = this.add.layer();
+    this.uiLayer = this.add.layer();
 
     const assetLoader = new AssetLoader(this);
     assetLoader.createPlaceholderTextures();
@@ -85,6 +90,10 @@ export class GameScene extends Phaser.Scene {
     this.player1.stocks = GAME_RULES_CONFIG.startingStocks;
     this.player2.stocks = GAME_RULES_CONFIG.startingStocks;
 
+    this.gameLayer.add(this.player1.sprite);
+    this.gameLayer.add(this.player2.sprite);
+    this.gameLayer.add(this.stage.getPlatformLayer());
+
     this.physics.add.collider(
       this.player1.sprite,
       this.stage.getPlatformLayer(),
@@ -104,7 +113,7 @@ export class GameScene extends Phaser.Scene {
     this.p1Input = new PlayerInput(this.inputRouter, P1_KEYS);
     this.p2Input = new PlayerInput(this.inputRouter, P2_KEYS);
 
-    this.hitboxManager = new HitboxManager(this);
+    this.hitboxManager = new HitboxManager(this, this.gameLayer);
 
     const audio = new AudioManager();
     this.p1StateMachine = new FighterStateMachine(
@@ -127,6 +136,7 @@ export class GameScene extends Phaser.Scene {
 
     this.uiManager = new UIManager(
       this,
+      this.uiLayer,
       this.player1,
       this.player2,
       this.gameRules,
@@ -144,7 +154,11 @@ export class GameScene extends Phaser.Scene {
       { deadzone },
     );
 
-    this.offscreenIndicator = new OffscreenIndicator(this);
+    this.offscreenIndicator = new OffscreenIndicator(this, this.uiLayer);
+
+    const uiCamera = this.cameras.add(0, 0, STAGE_CONFIG.width, STAGE_CONFIG.height);
+    uiCamera.ignore(this.gameLayer);
+    camera.ignore(this.uiLayer);
   }
 
   update(_time: number, delta: number): void {

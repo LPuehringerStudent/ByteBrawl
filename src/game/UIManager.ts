@@ -16,6 +16,7 @@ export class UIManager {
 
   constructor(
     private scene: Phaser.Scene,
+    private layer: Phaser.GameObjects.Layer,
     private player1: Fighter,
     private player2: Fighter,
     private gameRules: GameRules,
@@ -61,7 +62,7 @@ export class UIManager {
       fontSize: '16px',
     }).setOrigin(0.5, 0);
 
-    // Pin every HUD element to the camera so it stays fixed on screen.
+    // Add every HUD element to the UI layer so the dedicated UI camera renders it.
     for (const obj of [
       this.p1Icon,
       this.p1NameText,
@@ -73,7 +74,7 @@ export class UIManager {
       this.p2StocksText,
       this.timerText,
     ]) {
-      obj.setScrollFactor(0);
+      this.layer.add(obj);
       obj.setDepth(100);
     }
   }
@@ -115,7 +116,8 @@ export class UIManager {
       color: '#ffff00',
       fontFamily: 'Arial, sans-serif',
     });
-    this.winText.setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(100);
+    this.winText.setOrigin(0.5, 0.5).setDepth(100);
+    this.layer.add(this.winText);
   }
 
   destroy(): void {
