@@ -3,9 +3,11 @@ import { Fighter } from '../fighter/Fighter';
 import { GameRules, MatchState } from './GameRules';
 
 export class UIManager {
+  private p1NameText: Phaser.GameObjects.Text;
   private p1DamageText: Phaser.GameObjects.Text;
-  private p2DamageText: Phaser.GameObjects.Text;
   private p1StocksText: Phaser.GameObjects.Text;
+  private p2NameText: Phaser.GameObjects.Text;
+  private p2DamageText: Phaser.GameObjects.Text;
   private p2StocksText: Phaser.GameObjects.Text;
   private timerText: Phaser.GameObjects.Text;
   private winText: Phaser.GameObjects.Text | null = null;
@@ -18,54 +20,59 @@ export class UIManager {
   ) {
     const width = scene.scale.width;
 
-    this.p1DamageText = scene.add.text(16, 16, '', {
-      fontSize: '18px',
+    const textStyle = {
+      fontFamily: 'Arial, sans-serif',
+      color: '#ffffff',
+    };
+
+    const nameStyle = { ...textStyle, fontSize: '10px' };
+    const damageStyle = { ...textStyle, fontSize: '16px', fontStyle: 'bold' };
+    const stocksStyle = { ...textStyle, fontSize: '9px' };
+
+    // Player 1 panel (top left).
+    this.createIcon(14, 14, this.player1.sprite.texture.key, false);
+    this.p1NameText = scene.add.text(34, 10, this.player1.getConfig().name, {
+      ...nameStyle,
       color: '#00ffff',
-      fontFamily: 'Arial, sans-serif',
     });
+    this.p1DamageText = scene.add.text(34, 24, '0%', {
+      ...damageStyle,
+      color: '#00ffff',
+    });
+    this.p1StocksText = scene.add.text(34, 42, 'Stocks: 3', stocksStyle);
 
-    this.p2DamageText = scene.add.text(width - 16, 16, '', {
-      fontSize: '18px',
+    // Player 2 panel (top right).
+    this.createIcon(width - 14, 14, this.player2.sprite.texture.key, true);
+    this.p2NameText = scene.add.text(width - 34, 10, this.player2.getConfig().name, {
+      ...nameStyle,
       color: '#ff00ff',
-      fontFamily: 'Arial, sans-serif',
     }).setOrigin(1, 0);
-
-    this.p1StocksText = scene.add.text(16, 40, '', {
-      fontSize: '10px',
-      color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
-    });
-
-    this.p2StocksText = scene.add.text(width - 16, 40, '', {
-      fontSize: '10px',
-      color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+    this.p2DamageText = scene.add.text(width - 34, 24, '0%', {
+      ...damageStyle,
+      color: '#ff00ff',
     }).setOrigin(1, 0);
+    this.p2StocksText = scene.add.text(width - 34, 42, 'Stocks: 3', stocksStyle).setOrigin(1, 0);
 
-    this.timerText = scene.add.text(width / 2, 16, '', {
-      fontSize: '18px',
-      color: '#ffffff',
-      fontFamily: 'Arial, sans-serif',
+    // Timer (top center).
+    this.timerText = scene.add.text(width / 2, 12, '3:00', {
+      ...textStyle,
+      fontSize: '16px',
     }).setOrigin(0.5, 0);
 
-    // TODO: The UI should always be onscreen.
-    // Pin all HUD elements to the camera so they stay fixed during zoom/pan.
-    for (const text of [
-      this.p1DamageText,
-      this.p2DamageText,
-      this.p1StocksText,
-      this.p2StocksText,
-      this.timerText,
-    ]) {
-      text.setScrollFactor(0);
+    // Pin every HUD element to the camera.
+    for (const obj of scene.children.list) {
+      if (obj instanceof Phaser.GameObjects.Text || obj instanceof Phaser.GameObjects.Image) {
+        obj.setScrollFactor(0);
+        obj.setDepth(100);
+      }
     }
   }
 
   update(): void {
     this.p1DamageText.setText(`${Math.floor(this.player1.damage)}%`);
     this.p2DamageText.setText(`${Math.floor(this.player2.damage)}%`);
-    this.p1StocksText.setText(`P1: ${this.player1.stocks}`);
-    this.p2StocksText.setText(`P2: ${this.player2.stocks}`);
+    this.p1StocksText.setText(`Stocks: ${this.player1.stocks}`);
+    this.p2StocksText.setText(`Stocks: ${this.player2.stocks}`);
 
     const minutes = Math.floor(this.gameRules.matchTimer / 60);
     const seconds = this.gameRules.matchTimer % 60;
@@ -73,6 +80,16 @@ export class UIManager {
 
     if (this.gameRules.matchState !== 'active' && !this.winText) {
       this.showWinOverlay(this.gameRules.matchState);
+    }
+  }
+
+  private createIcon(x: number, y: number, texture: string, rightAligned: boolean): void {
+    const icon = this.scene.add.image(x, y, texture);
+    icon.setScale(1.5);
+    if (rightAligned) {
+      icon.setOrigin(1, 0);
+    } else {
+      icon.setOrigin(0, 0);
     }
   }
 
@@ -86,13 +103,15 @@ export class UIManager {
       color: '#ffff00',
       fontFamily: 'Arial, sans-serif',
     });
-    this.winText.setOrigin(0.5, 0.5).setScrollFactor(0);
+    this.winText.setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(100);
   }
 
   destroy(): void {
+    this.p1NameText.destroy();
     this.p1DamageText.destroy();
-    this.p2DamageText.destroy();
     this.p1StocksText.destroy();
+    this.p2NameText.destroy();
+    this.p2DamageText.destroy();
     this.p2StocksText.destroy();
     this.timerText.destroy();
     this.winText?.destroy();
