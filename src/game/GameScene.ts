@@ -6,6 +6,7 @@ import { FighterStateMachine } from '../fighter/FighterStateMachine';
 import { HitboxManager } from '../fighter/HitboxManager';
 import { AssetLoader } from '../shared/AssetLoader';
 import { AudioManager } from '../shared/AudioManager';
+import { CameraController } from './CameraController';
 import { GameRules, GameRulesConfig } from './GameRules';
 import { Stage } from './Stage';
 import { UIManager } from './UIManager';
@@ -49,6 +50,7 @@ export class GameScene extends Phaser.Scene {
   private hitboxManager!: HitboxManager;
   private gameRules!: GameRules;
   private uiManager!: UIManager;
+  private cameraController!: CameraController;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -117,11 +119,19 @@ export class GameScene extends Phaser.Scene {
     );
 
     const camera = this.cameras.main;
-    camera.setBounds(0, 0, STAGE_CONFIG.width, STAGE_CONFIG.height);
+    camera.setBounds(-120, -180, 560, 460);
     camera.centerOn(STAGE_CONFIG.width / 2, STAGE_CONFIG.height / 2);
+
+    this.cameraController = new CameraController(
+      camera,
+      this.player1,
+      this.player2,
+    );
   }
 
   update(_time: number, delta: number): void {
+    this.cameraController.update();
+
     if (this.gameRules.matchState !== 'active') {
       this.uiManager.update();
       return;
