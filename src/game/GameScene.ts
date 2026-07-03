@@ -135,8 +135,6 @@ export class GameScene extends Phaser.Scene {
     );
 
     this.uiManager = new UIManager(
-      this,
-      this.uiLayer,
       this.player1,
       this.player2,
       this.gameRules,
