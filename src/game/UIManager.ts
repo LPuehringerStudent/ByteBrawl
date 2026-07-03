@@ -18,42 +18,42 @@ export class UIManager {
   ) {
     const width = scene.scale.width;
 
-    this.p1DamageText = scene.add.text(20, 20, '', {
-      fontSize: '24px',
+    this.p1DamageText = scene.add.text(16, 16, '', {
+      fontSize: '18px',
       color: '#00ffff',
-      fontFamily: 'monospace',
+      fontFamily: 'Arial, sans-serif',
     });
 
-    this.p2DamageText = scene.add.text(width - 80, 20, '', {
-      fontSize: '24px',
+    this.p2DamageText = scene.add.text(width - 16, 16, '', {
+      fontSize: '18px',
       color: '#ff00ff',
-      fontFamily: 'monospace',
+      fontFamily: 'Arial, sans-serif',
+    }).setOrigin(1, 0);
+
+    this.p1StocksText = scene.add.text(16, 40, '', {
+      fontSize: '10px',
+      color: '#ffffff',
+      fontFamily: 'Arial, sans-serif',
     });
 
-    this.p1StocksText = scene.add.text(20, 50, '', {
-      fontSize: '16px',
+    this.p2StocksText = scene.add.text(width - 16, 40, '', {
+      fontSize: '10px',
       color: '#ffffff',
-      fontFamily: 'monospace',
-    });
+      fontFamily: 'Arial, sans-serif',
+    }).setOrigin(1, 0);
 
-    this.p2StocksText = scene.add.text(width - 80, 50, '', {
-      fontSize: '16px',
+    this.timerText = scene.add.text(width / 2, 16, '', {
+      fontSize: '18px',
       color: '#ffffff',
-      fontFamily: 'monospace',
-    });
-
-    this.timerText = scene.add.text(width / 2 - 30, 20, '', {
-      fontSize: '24px',
-      color: '#ffffff',
-      fontFamily: 'monospace',
-    });
+      fontFamily: 'Arial, sans-serif',
+    }).setOrigin(0.5, 0);
   }
 
   update(): void {
     this.p1DamageText.setText(`${Math.floor(this.player1.damage)}%`);
     this.p2DamageText.setText(`${Math.floor(this.player2.damage)}%`);
-    this.p1StocksText.setText(`P1 Stocks: ${this.player1.stocks}`);
-    this.p2StocksText.setText(`P2 Stocks: ${this.player2.stocks}`);
+    this.p1StocksText.setText(`P1: ${this.player1.stocks}`);
+    this.p2StocksText.setText(`P2: ${this.player2.stocks}`);
 
     const minutes = Math.floor(this.gameRules.matchTimer / 60);
     const seconds = this.gameRules.matchTimer % 60;
@@ -70,9 +70,9 @@ export class UIManager {
     const message = state === 'p1Win' ? 'PLAYER 1 WINS!' : 'PLAYER 2 WINS!';
 
     this.winText = this.scene.add.text(width / 2, height / 2, message, {
-      fontSize: '32px',
+      fontSize: '20px',
       color: '#ffff00',
-      fontFamily: 'monospace',
+      fontFamily: 'Arial, sans-serif',
     });
     this.winText.setOrigin(0.5, 0.5);
   }

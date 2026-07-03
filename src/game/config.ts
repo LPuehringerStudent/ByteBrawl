@@ -1,4 +1,3 @@
-import Phaser from 'phaser';
 import { FighterConfig, StageConfig } from '../shared/types';
 
 export const STAGE_CONFIG: StageConfig = {
@@ -11,24 +10,24 @@ export const STAGE_CONFIG: StageConfig = {
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   ],
-  blastZone: new Phaser.Geom.Rectangle(-80, -80, 480, 340),
-  player1Spawn: { x: 80, y: 120 },
-  player2Spawn: { x: 240, y: 120 },
+  blastZone: { x: -32, y: -32, width: 384, height: 244 },
+  player1Spawn: { x: 110, y: 128 },
+  player2Spawn: { x: 210, y: 128 },
 };
 
 export const FIGHTER_P1_CONFIG: FighterConfig = {
   name: 'Byte',
   maxHealth: 100,
   runSpeed: 120,
-  jumpSpeed: 380,
+  jumpSpeed: 320,
   weight: 1,
   spriteKey: 'fighter-p1',
   attacks: {
@@ -66,7 +65,7 @@ export const FIGHTER_P2_CONFIG: FighterConfig = {
   name: 'Nibble',
   maxHealth: 100,
   runSpeed: 140,
-  jumpSpeed: 360,
+  jumpSpeed: 300,
   weight: 0.9,
   spriteKey: 'fighter-p2',
   attacks: {
