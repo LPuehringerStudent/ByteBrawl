@@ -14,20 +14,20 @@ export const STAGE_CONFIG: StageConfig = {
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1],
+    [-1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
   ],
-  blastZone: { x: -32, y: -32, width: 384, height: 244 },
-  player1Spawn: { x: 110, y: 128 },
-  player2Spawn: { x: 210, y: 128 },
+  blastZone: { x: -48, y: -120, width: 416, height: 412 },
+  player1Spawn: { x: 110, y: 110 },
+  player2Spawn: { x: 210, y: 110 },
 };
 
 export const FIGHTER_P1_CONFIG: FighterConfig = {
   name: 'Byte',
   maxHealth: 100,
   runSpeed: 120,
-  jumpSpeed: 320,
+  jumpSpeed: 280,
   weight: 1,
   spriteKey: 'fighter-p1',
   attacks: {
@@ -65,7 +65,7 @@ export const FIGHTER_P2_CONFIG: FighterConfig = {
   name: 'Nibble',
   maxHealth: 100,
   runSpeed: 140,
-  jumpSpeed: 300,
+  jumpSpeed: 260,
   weight: 0.9,
   spriteKey: 'fighter-p2',
   attacks: {
