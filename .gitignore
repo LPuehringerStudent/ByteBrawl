@@ -1,22 +1,13 @@
-# Dependencies
-node_modules/
-.pnpm-store/
+# Godot
+.godot/
+*.import
+export_presets.cfg
 
-# Build output
-dist/
-build/
-
-# Local environment
-.env
-.env.local
-
-# Superpowers brainstorming artifacts
-.superpowers/
+# .NET
+bin/
+obj/
+*.user
 
 # IDE
 .vscode/
 .idea/
-
-# OS files
-.DS_Store
-Thumbs.db

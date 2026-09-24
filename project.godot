@@ -1,0 +1,18 @@
+config_version=5
+
+[application]
+config/name="ByteBrawl"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
+
+[display]
+window/size/viewport_width=320
+window/size/viewport_height=180
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
+[dotnet]
+project/assembly_name="ByteBrawl"
+
+[rendering]
+textures/canvas_textures/default_texture_filter=0
