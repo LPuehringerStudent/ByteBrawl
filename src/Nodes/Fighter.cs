@@ -28,7 +28,10 @@ public partial class Fighter : CharacterBody2D, IFighter
 
     public override void _Ready()
     {
+        var bodyShape = new CollisionShape2D { Shape = new RectangleShape2D { Size = new Vector2(12, 20) } };
+        AddChild(bodyShape);
         _rig = LimbRig.CreatePlaceholder();
+        if (PlayerIndex != 1) _rig.Modulate = new Color(1f, 0.55f, 0.9f); // P2 / dummy tint
         AddChild(_rig);
         var posePlayer = new PosePlayer { Rig = _rig, Name = "PosePlayer" };
         AddChild(posePlayer);

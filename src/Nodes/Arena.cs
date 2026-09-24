@@ -18,6 +18,8 @@ public partial class Arena : Node2D
     private MatchRules _rules = null!;
     private Fighter _p1 = null!;
     private Fighter _p2 = null!;
+    public Fighter P1 => _p1;
+    public Fighter P2 => _p2;
 
     public override void _Ready()
     {
@@ -89,6 +91,15 @@ public partial class Arena : Node2D
             };
             body.AddChild(shape);
             AddChild(body);
+
+            var visual = new Sprite2D
+            {
+                Texture = new PlaceholderTexture2D { Size = rect.Size },
+                Position = rect.Position + rect.Size / 2,
+                Modulate = new Color(0.32f, 0.32f, 0.38f),
+                ZIndex = -10,
+            };
+            AddChild(visual);
         }
     }
 
