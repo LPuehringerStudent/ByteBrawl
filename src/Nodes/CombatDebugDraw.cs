@@ -35,8 +35,8 @@ public partial class CombatDebugDraw : Node2D
     {
         if (ShowHurtboxes)
         {
-            var fill = new Color(0.25f, 1f, 0.5f, 0.45f);
-            var outline = new Color(0.05f, 0.55f, 0.25f);
+            var fill = new Color(0.75f, 1f, 0.85f, 0.15f);
+            var outline = new Color(0.75f, 1f, 0.85f, 0.35f);
             foreach (var f in new[] { P1, P2 })
             {
                 if (f == null) continue;
