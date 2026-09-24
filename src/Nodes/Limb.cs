@@ -25,6 +25,7 @@ public partial class Limb : Node2D
         limb.Sprite = new Sprite2D
         {
             Texture = Solid(size, color),
+            Centered = false, // sprite spans -pivot .. size-pivot: top-left at the joint
             Offset = -pivot,
             ZIndex = z,
         };
