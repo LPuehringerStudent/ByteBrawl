@@ -7,6 +7,8 @@ namespace ByteBrawl.Nodes;
 public partial class Limb : Node2D
 {
     public Sprite2D Sprite = null!;
+    public Vector2 Size;
+    public Vector2 Pivot;
 
     // Bakes a solid-color texture. (PlaceholderTexture2D renders as a
     // checkerboard at runtime, so it must not be used for game visuals.)
@@ -19,7 +21,7 @@ public partial class Limb : Node2D
 
     public static Limb Create(string name, Vector2 size, Vector2 pivot, Color color, int z = 0)
     {
-        var limb = new Limb { Name = name, Position = Vector2.Zero };
+        var limb = new Limb { Name = name, Position = Vector2.Zero, Size = size, Pivot = pivot };
         limb.Sprite = new Sprite2D
         {
             Texture = Solid(size, color),

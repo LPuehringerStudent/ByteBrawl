@@ -6,8 +6,9 @@ namespace ByteBrawl.Nodes;
 //   pelvis -> far leg (behind)
 //   pelvis -> torso -> backpack, far arm (behind), head, near arm (front)
 //   pelvis -> near leg (front)
-// Every body part except the backpack carries a hurtbox circle at its
-// segment midpoint (Ultimate-style per-part hurtboxes).
+// Every body part except the backpack carries a hurtbox capsule derived
+// from the part's sprite size/pivot, so hitboxes hug whatever art is in
+// place (placeholders now, real sprites later) with no manual placement.
 public partial class LimbRig : Node2D
 {
     public const int PartCount = 16;
@@ -25,10 +26,10 @@ public partial class LimbRig : Node2D
         var rig = new LimbRig();
 
         var pelvis = Limb.Create("Pelvis", new Vector2(10, 5), new Vector2(5, 2), mid);
-        AttachHurtbox(rig, pelvis, new Vector2(0, 0.5f), height: 6, radius: 4.5f);
+        AttachHurtbox(rig, pelvis);
         var torso = Limb.Create("Torso", new Vector2(10, 10), new Vector2(5, 10), near);
         torso.Position = new Vector2(0, -3);
-        AttachHurtbox(rig, torso, new Vector2(0, -5), height: 11, radius: 5f);
+        AttachHurtbox(rig, torso);
         pelvis.AddChild(torso);
 
         var backpack = Limb.Create("Backpack", new Vector2(3, 7), new Vector2(1.5f, 1), far, z: -1);
@@ -37,7 +38,7 @@ public partial class LimbRig : Node2D
 
         var head = Limb.Create("Head", new Vector2(8, 8), new Vector2(4, 8), near.Lerp(Colors.White, 0.2f), z: 1);
         head.Position = new Vector2(0, -10);
-        AttachHurtbox(rig, head, new Vector2(0, -4), height: 9, radius: 4f);
+        AttachHurtbox(rig, head);
         torso.AddChild(head);
 
         // arms: shoulder -> elbow -> hand
@@ -60,13 +61,13 @@ public partial class LimbRig : Node2D
     {
         var upper = Limb.Create($"{side}UpperArm", new Vector2(3, 7), new Vector2(1.5f, 0), color, z);
         upper.Position = shoulder;
-        AttachHurtbox(rig, upper, new Vector2(0, 3.5f), height: 9, radius: 2f);
+        AttachHurtbox(rig, upper);
         var fore = Limb.Create($"{side}Forearm", new Vector2(3, 7), new Vector2(1.5f, 0), color, z);
         fore.Position = new Vector2(0, 7);
-        AttachHurtbox(rig, fore, new Vector2(0, 3.5f), height: 9, radius: 1.8f);
+        AttachHurtbox(rig, fore);
         var hand = Limb.Create($"{side}Hand", new Vector2(3, 3), new Vector2(1.5f, 0), color.Darkened(0.1f), z);
         hand.Position = new Vector2(0, 7);
-        AttachHurtbox(rig, hand, new Vector2(0, 1.5f), height: 4, radius: 1.6f);
+        AttachHurtbox(rig, hand);
         fore.AddChild(hand);
         upper.AddChild(fore);
         return upper;
@@ -76,21 +77,30 @@ public partial class LimbRig : Node2D
     {
         var thigh = Limb.Create($"{side}Thigh", new Vector2(4, 8), new Vector2(2, 0), color, z);
         thigh.Position = hip;
-        AttachHurtbox(rig, thigh, new Vector2(0, 4), height: 10, radius: 2.2f);
+        AttachHurtbox(rig, thigh);
         var shin = Limb.Create($"{side}Shin", new Vector2(4, 8), new Vector2(2, 0), color, z);
         shin.Position = new Vector2(0, 8);
-        AttachHurtbox(rig, shin, new Vector2(0, 4), height: 10, radius: 2f);
+        AttachHurtbox(rig, shin);
         var foot = Limb.Create($"{side}Foot", new Vector2(5, 3), new Vector2(2, 1), color.Darkened(0.1f), z);
         foot.Position = new Vector2(0, 8);
-        AttachHurtbox(rig, foot, new Vector2(0.5f, 0.5f), height: 6, radius: 1.6f, rotation: 90f);
+        AttachHurtbox(rig, foot);
         shin.AddChild(foot);
         thigh.AddChild(shin);
         return thigh;
     }
 
-    private static void AttachHurtbox(LimbRig rig, Limb limb, Vector2 localCenter, float height, float radius, float rotation = 0f)
+    // Capsule from the part's own geometry: centered on the sprite, radius =
+    // half the limb thickness, height along the long axis with slight joint overlap.
+    private static void AttachHurtbox(LimbRig rig, Limb limb)
     {
-        var area = new Hurtbox { Radius = radius, Height = height, RotationDegrees = rotation, Position = localCenter };
+        var size = limb.Size;
+        var center = size / 2 - limb.Pivot;
+        var alongX = size.X > size.Y;
+        var length = alongX ? size.X : size.Y;
+        var radius = (alongX ? size.Y : size.X) / 2f;
+        var height = length + radius * 0.6f;
+        var area = new Hurtbox { Radius = radius, Height = height, Position = center };
+        if (alongX) area.RotationDegrees = 90f;
         area.AddChild(new CollisionShape2D { Shape = new CapsuleShape2D { Radius = radius, Height = height } });
         limb.AddChild(area);
         rig.Hurtboxes.Add(area);
