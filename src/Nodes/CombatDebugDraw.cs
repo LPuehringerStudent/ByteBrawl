@@ -13,6 +13,11 @@ public partial class CombatDebugDraw : Node2D
 
     private bool _f3Prev;
 
+    public override void _Ready()
+    {
+        ZIndex = 100; // always above fighters and stage
+    }
+
     public override void _Process(double delta)
     {
         var f3 = Input.IsPhysicalKeyPressed(Key.F3);
@@ -30,19 +35,23 @@ public partial class CombatDebugDraw : Node2D
     {
         if (ShowHurtboxes)
         {
-            var fill = new Color(1, 1, 1, 0.3f);
+            var fill = new Color(0.25f, 1f, 0.5f, 0.45f);
+            var outline = new Color(0.05f, 0.55f, 0.25f);
             foreach (var f in new[] { P1, P2 })
             {
                 if (f == null) continue;
                 var scale = Mathf.Abs(f.Rig.Scale.X);
                 foreach (var hurtbox in f.Rig.Hurtboxes)
                 {
-                    // Capsule: thick line along the segment + cap circles.
+                    // Capsule: thick line along the segment + cap circles, with outline.
                     var t = hurtbox.GlobalTransform;
                     var r = hurtbox.Radius * scale;
                     var half = (hurtbox.Height * 0.5f - hurtbox.Radius) * scale;
                     var a = t * new Vector2(0, -half);
                     var b = t * new Vector2(0, half);
+                    DrawLine(a, b, outline, r * 2 + 1.5f);
+                    DrawCircle(a, r + 0.75f, outline);
+                    DrawCircle(b, r + 0.75f, outline);
                     DrawLine(a, b, fill, r * 2);
                     DrawCircle(a, r, fill);
                     DrawCircle(b, r, fill);
