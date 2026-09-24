@@ -8,15 +8,22 @@ public partial class Limb : Node2D
 {
     public Sprite2D Sprite = null!;
 
+    // Bakes a solid-color texture. (PlaceholderTexture2D renders as a
+    // checkerboard at runtime, so it must not be used for game visuals.)
+    public static ImageTexture Solid(Vector2 size, Color color)
+    {
+        var image = Image.CreateEmpty(Math.Max(1, (int)size.X), Math.Max(1, (int)size.Y), false, Image.Format.Rgba8);
+        image.Fill(color);
+        return ImageTexture.CreateFromImage(image);
+    }
+
     public static Limb Create(string name, Vector2 size, Vector2 pivot, Color color, int z = 0)
     {
         var limb = new Limb { Name = name, Position = Vector2.Zero };
-        var tex = new PlaceholderTexture2D { Size = size };
         limb.Sprite = new Sprite2D
         {
-            Texture = tex,
+            Texture = Solid(size, color),
             Offset = -pivot,
-            Modulate = color,
             ZIndex = z,
         };
         limb.AddChild(limb.Sprite);

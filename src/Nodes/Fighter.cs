@@ -31,7 +31,7 @@ public partial class Fighter : CharacterBody2D, IFighter
         var bodyShape = new CollisionShape2D { Shape = new RectangleShape2D { Size = new Vector2(12, 20) } };
         AddChild(bodyShape);
         _rig = LimbRig.CreatePlaceholder();
-        if (PlayerIndex != 1) _rig.Modulate = new Color(1f, 0.55f, 0.9f); // P2 / dummy tint
+        if (PlayerIndex != 1) _rig.Modulate = new Color(1f, 0.35f, 0.7f); // P2 / dummy tint
         AddChild(_rig);
         var posePlayer = new PosePlayer { Rig = _rig, Name = "PosePlayer" };
         AddChild(posePlayer);
@@ -50,7 +50,8 @@ public partial class Fighter : CharacterBody2D, IFighter
         if (InvincibleFrames > 0) InvincibleFrames--;
         Fsm.Update(LocalInput.Capture(PlayerIndex));
         MoveAndSlide();
-        _rig.Scale = new Vector2(Facing, 1); // mirror the rig to face left/right
+        // mirror to face left/right; 0.65 fits the ~33px rig into the 20px-tall collision box
+        _rig.Scale = new Vector2(Facing * 0.65f, 0.65f);
         GetNode<PosePlayer>("PosePlayer").Play(Fsm.CurrentState, Fsm.StateFrames);
     }
 

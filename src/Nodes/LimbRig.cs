@@ -14,7 +14,7 @@ public partial class LimbRig : Node2D
 
     public static LimbRig CreatePlaceholder()
     {
-        var near = new Color(0.15f, 0.85f, 0.85f);
+        var near = new Color(0.8f, 0.95f, 0.95f);
         var mid = near.Darkened(0.25f);
         var far = near.Darkened(0.5f);
 

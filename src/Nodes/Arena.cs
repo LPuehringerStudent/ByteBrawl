@@ -94,9 +94,8 @@ public partial class Arena : Node2D
 
             var visual = new Sprite2D
             {
-                Texture = new PlaceholderTexture2D { Size = rect.Size },
+                Texture = Limb.Solid(rect.Size, new Color(0.35f, 0.35f, 0.42f)),
                 Position = rect.Position + rect.Size / 2,
-                Modulate = new Color(0.32f, 0.32f, 0.38f),
                 ZIndex = -10,
             };
             AddChild(visual);
