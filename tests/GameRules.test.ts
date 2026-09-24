@@ -10,6 +10,10 @@ function createFighter(): Fighter {
     y: 0,
     damage: 0,
     stocks: 3,
+    facing: 1,
+    invincibleFrames: 0,
+    shieldActive: false,
+    shieldHealth: 100,
     takeDamage(amount: number) {
       this.damage += amount;
     },
@@ -18,6 +22,9 @@ function createFighter(): Fighter {
       this.y += vec.y;
     },
     enterHitstun(_frames: number) {},
+    damageShield(amount: number) {
+      this.shieldHealth -= amount;
+    },
     loseStock() {
       this.stocks -= 1;
     },
@@ -94,6 +101,37 @@ describe('GameRules', () => {
     expect(p2.stocks).toBe(1);
     expect(p2.x).toBe(50);
     expect(p2.y).toBe(100);
+    expect(p2.damage).toBe(0);
+  });
+
+  it('ignores hits while defender is invincible', () => {
+    const p1 = createFighter();
+    const p2 = createFighter();
+    p2.invincibleFrames = 5;
+    const rules = new GameRules(config, new AudioManager(), p1, p2);
+    rules.applyHit(p1, p2, attack);
+    expect(p2.damage).toBe(0);
+    expect(p2.x).toBe(0);
+  });
+
+  it('damages shield instead of player when shield is active', () => {
+    const p1 = createFighter();
+    const p2 = createFighter();
+    p2.shieldActive = true;
+    const rules = new GameRules(config, new AudioManager(), p1, p2);
+    rules.applyHit(p1, p2, attack);
+    expect(p2.damage).toBe(0);
+    expect(p2.shieldHealth).toBe(70);
+  });
+
+  it('breaks shield when shield damage exceeds remaining health', () => {
+    const p1 = createFighter();
+    const p2 = createFighter();
+    p2.shieldActive = true;
+    p2.shieldHealth = 5;
+    const rules = new GameRules(config, new AudioManager(), p1, p2);
+    rules.applyHit(p1, p2, attack);
+    expect(p2.shieldHealth).toBeLessThanOrEqual(0);
     expect(p2.damage).toBe(0);
   });
 });

@@ -16,6 +16,7 @@ export class HitboxManager {
       attacker: Fighter;
       attack: AttackData;
       framesRemaining: number;
+      hasHit: boolean;
     }
   > = new Map();
 
@@ -38,9 +39,18 @@ export class HitboxManager {
     const y = attacker.y + offsetY;
     const sprite = this.scene.physics.add.sprite(x, y, 'hitbox');
     sprite.setVisible(false);
-    sprite.body!.setSize(width, height);
-    sprite.body!.setImmovable(true);
-    sprite.body!.allowGravity = false;
+
+    const body = sprite.body as Phaser.Physics.Arcade.Body;
+    const shape = attack.shape ?? 'circle';
+    if (shape === 'box') {
+      body.setSize(width, height);
+    } else {
+      const radius = attack.radius ?? Math.round(width / 2);
+      body.setCircle(radius);
+    }
+
+    body.setImmovable(true);
+    body.allowGravity = false;
 
     if (this.layer) {
       this.layer.add(sprite);
@@ -52,6 +62,7 @@ export class HitboxManager {
       attacker,
       attack,
       framesRemaining: attack.activeFrames,
+      hasHit: false,
     });
   }
 
@@ -68,25 +79,40 @@ export class HitboxManager {
     for (const { self, other } of players) {
       if (other.invincibleFrames > 0) continue;
 
-      for (const [id, data] of this.activeHitboxes) {
-        if (data.attacker === self) {
+      for (const data of this.activeHitboxes.values()) {
+        if (data.attacker === self && !data.hasHit) {
           const hitboxBody = data.sprite.body as Phaser.Physics.Arcade.Body;
-          const hitboxRect = new Phaser.Geom.Rectangle(
-            hitboxBody.x,
-            hitboxBody.y,
-            hitboxBody.width,
-            hitboxBody.height,
-          );
           const otherRect = new Phaser.Geom.Rectangle(
             other.body.x,
             other.body.y,
             other.body.width,
             other.body.height,
           );
-          if (Phaser.Geom.Intersects.RectangleToRectangle(hitboxRect, otherRect)) {
+
+          const hit = hitboxBody.isCircle
+            ? Phaser.Geom.Intersects.CircleToRectangle(
+                new Phaser.Geom.Circle(
+                  hitboxBody.center.x,
+                  hitboxBody.center.y,
+                  hitboxBody.width / 2,
+                ),
+                otherRect,
+              )
+            : Phaser.Geom.Intersects.RectangleToRectangle(
+                new Phaser.Geom.Rectangle(
+                  hitboxBody.x,
+                  hitboxBody.y,
+                  hitboxBody.width,
+                  hitboxBody.height,
+                ),
+                otherRect,
+              );
+
+          if (hit) {
             onHit({ attacker: self, defender: other, attack: data.attack });
-            // Remove this hitbox after it connects so one attack doesn't multi-hit.
-            this.removeHitbox(id);
+            // Mark as hit so one attack doesn't multi-hit, but keep it visible
+            // for its remaining active frames.
+            data.hasHit = true;
             break;
           }
         }
@@ -101,6 +127,16 @@ export class HitboxManager {
         this.removeHitbox(id);
       }
     }
+  }
+
+  getActiveHitboxes(): Array<{
+    sprite: Phaser.Physics.Arcade.Sprite;
+    attacker: Fighter;
+    attack: AttackData;
+    framesRemaining: number;
+    hasHit: boolean;
+  }> {
+    return Array.from(this.activeHitboxes.values());
   }
 
   clear(): void {

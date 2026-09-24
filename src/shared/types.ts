@@ -4,8 +4,32 @@ export interface ActionFrame {
   jumpPressed: boolean;
   jumpHeld: boolean;
   attackLight: boolean;
+  attackLightHeld: boolean;
   attackHeavy: boolean;
+  attackHeavyHeld: boolean;
   attackSpecial: boolean;
+  attackSpecialHeld: boolean;
+  gadgetPressed: boolean;
+  gadgetHeld: boolean;
+  shieldPressed: boolean;
+  shieldHeld: boolean;
+  grabPressed: boolean;
+  grabHeld: boolean;
+}
+
+export type HitboxShape = 'box' | 'circle';
+
+export interface ChargeConfig {
+  minChargeFrames: number;
+  maxChargeFrames: number;
+  maxHoldFrames: number;
+  damageGrowth: number;
+  knockbackGrowth: number;
+  hitboxGrowth?: {
+    radius?: number;
+    width?: number;
+    height?: number;
+  };
 }
 
 export interface AttackData {
@@ -16,6 +40,30 @@ export interface AttackData {
   direction: { x: number; y: number };
   hitstunFrames: number;
   activeFrames: number;
+  shape?: HitboxShape;
+  radius?: number;
+  charge?: ChargeConfig;
+  stages?: AttackStage[];
+}
+
+export interface AttackStage extends AttackData {
+  spawnFrame: number;
+  offsetX: number;
+  offsetY: number;
+  width: number;
+  height: number;
+}
+
+export interface WeaponConfig {
+  id: string;
+  name: string;
+  light: AttackData;
+  heavy: AttackData;
+}
+
+export interface GadgetConfig {
+  id: string;
+  name: string;
 }
 
 export interface FighterConfig {
@@ -25,7 +73,9 @@ export interface FighterConfig {
   jumpSpeed: number;
   weight: number;
   spriteKey: string;
-  attacks: Record<string, AttackData>;
+  special: AttackData;
+  weapon: WeaponConfig;
+  gadget: GadgetConfig;
 }
 
 export type FighterState =
@@ -36,6 +86,10 @@ export type FighterState =
   | 'lightAttack'
   | 'heavyAttack'
   | 'special'
+  | 'charging'
+  | 'shield'
+  | 'spotDodge'
+  | 'airDodge'
   | 'hitstun'
   | 'recovery';
 

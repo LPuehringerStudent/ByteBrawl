@@ -23,17 +23,32 @@ export class GameRules {
   ) {}
 
   applyHit(
-    _attacker: Fighter,
+    attacker: Fighter,
     defender: Fighter,
     attack: AttackData,
   ): void {
     if (this.matchState !== 'active') return;
+
+    if (defender.invincibleFrames > 0) return;
+
+    const facing = attacker.facing;
+
+    if (defender.shieldActive && defender.shieldHealth > 0) {
+      defender.damageShield(attack.baseDamage * 3);
+      defender.applyKnockback({
+        x: attack.direction.x * facing * attack.baseKnockback * 0.3,
+        y: attack.direction.y * attack.baseKnockback * 0.3,
+      });
+      this.audio.playHit();
+      return;
+    }
 
     const preDamage = defender.damage;
     defender.takeDamage(attack.baseDamage);
 
     const knockbackX =
       attack.direction.x *
+      facing *
       (attack.baseKnockback + preDamage * attack.scaling);
     const knockbackY =
       attack.direction.y *

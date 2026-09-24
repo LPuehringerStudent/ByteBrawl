@@ -2,6 +2,7 @@ import { Fighter } from '../fighter/Fighter';
 import { GameRules, MatchState } from './GameRules';
 
 export class UIManager {
+  private overlay: HTMLElement;
   private p1NameEl: HTMLElement;
   private p1DamageEl: HTMLElement;
   private p1StocksEl: HTMLElement;
@@ -16,6 +17,7 @@ export class UIManager {
     private player2: Fighter,
     private gameRules: GameRules,
   ) {
+    this.overlay = document.getElementById('ui-overlay')!;
     this.p1NameEl = document.getElementById('p1-name')!;
     this.p1DamageEl = document.getElementById('p1-damage')!;
     this.p1StocksEl = document.getElementById('p1-stocks')!;
@@ -56,7 +58,16 @@ export class UIManager {
     this.winMessageEl.style.display = 'block';
   }
 
+  show(): void {
+    this.overlay.style.display = 'flex';
+  }
+
+  hide(): void {
+    this.overlay.style.display = 'none';
+  }
+
   destroy(): void {
+    this.hide();
     this.winMessageEl.style.display = 'none';
   }
 }

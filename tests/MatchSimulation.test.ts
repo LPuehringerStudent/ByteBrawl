@@ -11,6 +11,10 @@ function createFighter(name: string): Fighter {
     y: 0,
     damage: 0,
     stocks: 3,
+    facing: 1,
+    invincibleFrames: 0,
+    shieldActive: false,
+    shieldHealth: 100,
     takeDamage(amount: number) {
       this.damage += amount;
     },

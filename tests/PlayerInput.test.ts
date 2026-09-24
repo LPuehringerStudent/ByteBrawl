@@ -14,9 +14,13 @@ const KEYS = {
   right: 2,
   up: 3,
   down: 4,
+  jump: 8,
   light: 5,
   heavy: 6,
   special: 7,
+  gadget: 9,
+  shield: 10,
+  grab: 11,
 };
 
 describe('PlayerInput', () => {
@@ -49,7 +53,7 @@ describe('PlayerInput', () => {
   });
 
   it('detects jump press on first frame only', () => {
-    const router = createRouter({ [KEYS.up]: { down: true, downOnce: true } });
+    const router = createRouter({ [KEYS.jump]: { down: true, downOnce: true } });
     const input = new PlayerInput(router, KEYS);
     expect(input.getActions().jumpPressed).toBe(true);
     expect(input.getActions().jumpHeld).toBe(true);
@@ -59,5 +63,18 @@ describe('PlayerInput', () => {
     const router = createRouter({ [KEYS.light]: { down: true, downOnce: true } });
     const input = new PlayerInput(router, KEYS);
     expect(input.getActions().attackLight).toBe(true);
+  });
+
+  it('detects grab once per press', () => {
+    const router = createRouter({ [KEYS.grab]: { down: true, downOnce: true } });
+    const input = new PlayerInput(router, KEYS);
+    expect(input.getActions().grabPressed).toBe(true);
+  });
+
+  it('reports held attack state while key is down', () => {
+    const router = createRouter({ [KEYS.heavy]: { down: true, downOnce: false } });
+    const input = new PlayerInput(router, KEYS);
+    expect(input.getActions().attackHeavyHeld).toBe(true);
+    expect(input.getActions().attackHeavy).toBe(false);
   });
 });

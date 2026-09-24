@@ -35,6 +35,14 @@ export class AssetLoader {
     graphics.generateTexture('hitbox', 16, 16);
     graphics.clear();
 
+    // Shield bubble texture
+    graphics.lineStyle(2, 0x88ccff, 0.8);
+    graphics.fillStyle(0x88ccff, 0.25);
+    graphics.strokeCircle(16, 16, 16);
+    graphics.fillCircle(16, 16, 16);
+    graphics.generateTexture('shield', 32, 32);
+    graphics.clear();
+
     graphics.destroy();
   }
 }

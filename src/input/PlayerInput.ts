@@ -6,9 +6,13 @@ export interface PlayerInputConfig {
   right: number;
   up: number;
   down: number;
+  jump: number;
   light: number;
   heavy: number;
   special: number;
+  gadget: number;
+  shield: number;
+  grab: number;
 }
 
 export class PlayerInput {
@@ -31,11 +35,20 @@ export class PlayerInput {
     return {
       moveX,
       moveY,
-      jumpPressed: this.router.isDownOnce(this.config.up),
-      jumpHeld: this.router.isDown(this.config.up),
+      jumpPressed: this.router.isDownOnce(this.config.jump),
+      jumpHeld: this.router.isDown(this.config.jump),
       attackLight: this.router.isDownOnce(this.config.light),
+      attackLightHeld: this.router.isDown(this.config.light),
       attackHeavy: this.router.isDownOnce(this.config.heavy),
+      attackHeavyHeld: this.router.isDown(this.config.heavy),
       attackSpecial: this.router.isDownOnce(this.config.special),
+      attackSpecialHeld: this.router.isDown(this.config.special),
+      gadgetPressed: this.router.isDownOnce(this.config.gadget),
+      gadgetHeld: this.router.isDown(this.config.gadget),
+      shieldPressed: this.router.isDownOnce(this.config.shield),
+      shieldHeld: this.router.isDown(this.config.shield),
+      grabPressed: this.router.isDownOnce(this.config.grab),
+      grabHeld: this.router.isDown(this.config.grab),
     };
   }
 }

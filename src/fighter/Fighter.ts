@@ -11,7 +11,14 @@ export class Fighter {
   maxAirJumps = 2;
   airJumpsRemaining = 2;
   droppingThrough = false;
+  shieldActive = false;
+  shieldHealth = 100;
+  maxShieldHealth = 100;
+  shieldBubble: Phaser.GameObjects.Image | null = null;
+  dodgeDirectionX = 0;
+  dodgeDirectionY = 0;
   private wasGrounded = false;
+  private chargingFull = false;
 
   private config: FighterConfig;
 
@@ -21,6 +28,7 @@ export class Fighter {
     y: number,
     texture: string,
     config: FighterConfig,
+    private layer?: Phaser.GameObjects.Layer,
   ) {
     this.config = config;
     this.sprite = scene.physics.add.sprite(x, y, texture);
@@ -100,6 +108,43 @@ export class Fighter {
     this.damage += amount;
   }
 
+  createShieldBubble(scene: Phaser.Scene): void {
+    if (this.shieldBubble) return;
+    this.shieldBubble = scene.add.image(this.sprite.x, this.sprite.y, 'shield');
+    this.shieldBubble.setDepth(50);
+    if (this.layer) {
+      this.layer.add(this.shieldBubble);
+    }
+  }
+
+  activateShield(): void {
+    this.shieldActive = true;
+    this.shieldBubble?.setVisible(true);
+  }
+
+  deactivateShield(): void {
+    this.shieldActive = false;
+    this.shieldBubble?.setVisible(false);
+  }
+
+  damageShield(amount: number): void {
+    this.shieldHealth -= amount;
+    if (this.shieldHealth <= 0) {
+      this.shieldHealth = 0;
+      this.deactivateShield();
+    }
+  }
+
+  resetShield(): void {
+    this.shieldHealth = this.maxShieldHealth;
+  }
+
+  startDodge(directionX: number, directionY: number): void {
+    this.dodgeDirectionX = directionX;
+    this.dodgeDirectionY = directionY;
+    this.enterInvincibility(20);
+  }
+
   loseStock(): void {
     this.stocks -= 1;
     this.damage = 0;
@@ -113,6 +158,10 @@ export class Fighter {
     this.enterInvincibility(invincibilityFrames);
   }
 
+  setChargingFull(value: boolean): void {
+    this.chargingFull = value;
+  }
+
   update(): void {
     if (this.hitstunFrames > 0) {
       this.hitstunFrames--;
@@ -120,8 +169,15 @@ export class Fighter {
     if (this.invincibleFrames > 0) {
       this.invincibleFrames--;
       this.sprite.setAlpha(this.invincibleFrames % 12 < 6 ? 0.5 : 1);
+    } else if (this.chargingFull) {
+      this.sprite.setAlpha(this.sprite.scene.game.loop.frame % 12 < 6 ? 0.4 : 1);
     } else {
       this.sprite.setAlpha(1);
+    }
+
+    if (this.shieldBubble) {
+      this.shieldBubble.setPosition(this.sprite.x, this.sprite.y);
+      this.shieldBubble.setVisible(this.shieldActive && this.shieldHealth > 0);
     }
 
     const grounded = this.isGrounded;
