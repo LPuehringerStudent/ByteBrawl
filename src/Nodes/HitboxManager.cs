@@ -7,19 +7,15 @@ public partial class HitboxManager : Node, IHitboxManager
 {
     public MatchRules? Rules;
 
-    public void Spawn(IFighter attacker, AttackData attack, float offsetX, float offsetY, float width, float height)
+    public void Spawn(IFighter attacker, AttackData attack, HitboxSpec spec)
     {
         if (attacker is not Fighter a || Rules == null) return;
-        var shape = new CollisionShape2D();
-        if (attack.Shape == HitboxShape.Box)
-            shape.Shape = new RectangleShape2D { Size = new Vector2(width, height) };
-        else
-            shape.Shape = new CircleShape2D { Radius = attack.Radius };
+        var shape = new CollisionShape2D { Shape = new CircleShape2D { Radius = spec.Radius } };
         var hb = new Hitbox
         {
-            Attacker = a, Attack = attack, FramesRemaining = attack.ActiveFrames,
-            Position = a.Position + new Vector2(offsetX * a.Facing, offsetY),
-            Width = width, Height = height,
+            Attacker = a, Spec = spec, FramesRemaining = attack.ActiveFrames,
+            Position = a.Position + new Vector2(spec.OffsetX * a.Facing, spec.OffsetY),
+            Attack = EffectiveAttack(attack, spec),
         };
         hb.AddChild(shape);
         hb.AreaEntered += area =>
@@ -31,6 +27,23 @@ public partial class HitboxManager : Node, IHitboxManager
             hb.HasHit = true;
         };
         AddChild(hb);
+    }
+
+    // Sweet/sour spot support: a spec may override damage/knockback for its circle.
+    private static AttackData EffectiveAttack(AttackData attack, HitboxSpec spec)
+    {
+        if (spec.DamageOverride is null && spec.KnockbackOverride is null)
+            return attack;
+        return new AttackData
+        {
+            Id = attack.Id,
+            BaseDamage = spec.DamageOverride ?? attack.BaseDamage,
+            BaseKnockback = spec.KnockbackOverride ?? attack.BaseKnockback,
+            Scaling = attack.Scaling,
+            Direction = attack.Direction,
+            HitstunFrames = attack.HitstunFrames,
+            ActiveFrames = attack.ActiveFrames,
+        };
     }
 
     public override void _PhysicsProcess(double delta)

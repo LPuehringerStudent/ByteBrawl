@@ -155,7 +155,8 @@ public class FighterStateMachine
                _stateFrames >= _sequence[_nextStageIndex].SpawnFrame)
         {
             var stage = _sequence[_nextStageIndex++];
-            _hitboxes.Spawn(_fighter, stage, stage.OffsetX, stage.OffsetY, stage.Width, stage.Height);
+            foreach (var spec in stage.Hitboxes)
+                _hitboxes.Spawn(_fighter, stage, spec);
         }
         if (_stateFrames >= _attackTotalFrames)
             SetState(_fighter.IsGrounded ? FighterState.Idle : FighterState.Fall);
@@ -200,8 +201,7 @@ public class FighterStateMachine
             Direction = _chargeAttack.Direction,
             HitstunFrames = _chargeAttack.HitstunFrames,
             ActiveFrames = _chargeAttack.ActiveFrames,
-            Shape = _chargeAttack.Shape,
-            Radius = _chargeAttack.Radius,
+            Hitboxes = _chargeAttack.Hitboxes,
         };
         _fighter.SetChargingFull(false);
         _chargeAttack = null;
@@ -233,7 +233,8 @@ public class FighterStateMachine
         _attackCooldown = _attackTotalFrames;
 
         if (_sequence.Length == 0)
-            _hitboxes.Spawn(_fighter, attack, 14, -2, 12, 16);
+            foreach (var spec in attack.Hitboxes)
+                _hitboxes.Spawn(_fighter, attack, spec);
     }
 
     private void SetState(FighterState newState)

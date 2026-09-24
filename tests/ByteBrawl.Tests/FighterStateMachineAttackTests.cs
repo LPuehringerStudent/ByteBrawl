@@ -28,10 +28,18 @@ public class FighterStateMachineAttackTests
         var (fsm, _, hb) = NewFsm();
         fsm.Update(Neutral() with { AttackSpecial = true });
         for (var i = 0; i < 30; i++) fsm.Update(Neutral());
-        Assert.Equal(3, hb.Spawns.Count);
+        // Stages 2 and 3 carry two hitboxes each (base circle + fist tipper).
+        Assert.Equal(5, hb.Spawns.Count);
         Assert.Equal("byte-special-1", hb.Spawns[0].Attack.Id);
         Assert.Equal("byte-special-2", hb.Spawns[1].Attack.Id);
-        Assert.Equal("byte-special-3", hb.Spawns[2].Attack.Id);
+        Assert.Equal("byte-special-2", hb.Spawns[2].Attack.Id);
+        Assert.Equal("byte-special-3", hb.Spawns[3].Attack.Id);
+        Assert.Equal("byte-special-3", hb.Spawns[4].Attack.Id);
+        Assert.Equal(24f, hb.Spawns[1].Spec.OffsetX);
+        Assert.Equal(30f, hb.Spawns[2].Spec.OffsetX);
+        Assert.True(hb.Spawns[2].Spec.Radius < hb.Spawns[1].Spec.Radius); // fist tip < elbow
+        Assert.Equal(41f, hb.Spawns[4].Spec.OffsetX);
+        Assert.Equal(7f, hb.Spawns[4].Spec.DamageOverride); // tipper hits harder
     }
 
     [Fact] public void ChargeableHeavy_EntersChargingWithoutSpawning()

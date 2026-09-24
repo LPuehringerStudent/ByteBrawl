@@ -32,8 +32,8 @@ public class FakeFighter : IFighter
 
 public class FakeHitboxManager : IHitboxManager
 {
-    public record Spawned(IFighter Attacker, AttackData Attack, float X, float Y, float W, float H);
+    public record Spawned(IFighter Attacker, AttackData Attack, HitboxSpec Spec);
     public List<Spawned> Spawns = new();
-    public void Spawn(IFighter a, AttackData atk, float x, float y, float w, float h)
-        => Spawns.Add(new Spawned(a, atk, x, y, w, h));
+    public void Spawn(IFighter a, AttackData atk, HitboxSpec spec)
+        => Spawns.Add(new Spawned(a, atk, spec));
 }

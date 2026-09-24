@@ -11,8 +11,7 @@ public class AttackData
     public Vector2 Direction = Vector2.Zero;
     public int HitstunFrames;
     public int ActiveFrames;
-    public HitboxShape Shape = HitboxShape.Circle;
-    public float Radius = 6f;
     public ChargeConfig? Charge;
     public List<AttackStage> Stages = new();
+    public List<HitboxSpec> Hitboxes = new();
 }

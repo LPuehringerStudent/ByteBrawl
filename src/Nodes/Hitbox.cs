@@ -7,8 +7,7 @@ public partial class Hitbox : Area2D
 {
     public Fighter Attacker = null!;
     public AttackData Attack = null!;
+    public HitboxSpec Spec = null!;
     public int FramesRemaining;
     public bool HasHit;
-    public float Width;
-    public float Height;
 }
