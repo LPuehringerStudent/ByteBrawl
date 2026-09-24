@@ -8,6 +8,7 @@ public partial class Main : Node
     private static readonly Color IdleColor = new(0.55f, 0.55f, 0.6f);
 
     private int _selected;
+    private bool _armed;
     private bool _wPrev, _sPrev, _jPrev, _kPrev;
     private Label _versusLabel = null!;
     private Label _trainingLabel = null!;
@@ -26,6 +27,17 @@ public partial class Main : Node
         var s = Input.IsPhysicalKeyPressed(Key.S);
         var j = Input.IsPhysicalKeyPressed(Key.J);
         var k = Input.IsPhysicalKeyPressed(Key.K);
+
+        // Ignore input until every key is released once — the keypress that
+        // brought us here (J on "Quit to Menu", K on the win screen) is often
+        // still held when this scene loads and would otherwise trigger instantly.
+        if (!_armed)
+        {
+            if (!w && !s && !j && !k) _armed = true;
+            _wPrev = w; _sPrev = s; _jPrev = j; _kPrev = k;
+            return;
+        }
+
         if (w && !_wPrev) _selected = Mathf.Wrap(_selected - 1, 0, 2);
         if (s && !_sPrev) _selected = Mathf.Wrap(_selected + 1, 0, 2);
         if (j && !_jPrev)
