@@ -46,6 +46,10 @@ public partial class Arena : Node2D
         var debug = new CombatDebugDraw { P1 = _p1, P2 = _p2, Hitboxes = hb, Name = "DebugDraw" };
         AddChild(debug);
 
+        var pause = new PauseMenu();
+        AddChild(pause);
+        pause.Initialize(debug, Training);
+
         BuildHud();
     }
 

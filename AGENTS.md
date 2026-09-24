@@ -50,7 +50,8 @@ A passing smoke run prints `SMOKE PASS`. Note: the `godot` binary must be a .NET
 │       ├── HitboxManager.cs, Hitbox.cs, Hurtbox.cs   # Hit detection
 │       ├── LocalInput.cs             # Keyboard → ActionFrame
 │       ├── ArenaCamera.cs            # Two-player camera
-│       ├── CombatDebugDraw.cs        # F3-toggled overlay (hurtboxes, hitboxes, knockback vectors)
+│       ├── CombatDebugDraw.cs        # Debug overlay: hitboxes, hurtboxes, knockback vectors (F3 or pause menu)
+│       ├── PauseMenu.cs              # Esc pause overlay (resume, hitbox/hurtbox toggles in training, quit)
 │       ├── Main.cs                   # Boot menu (W/S select, J confirm, K quit)
 │       └── SmokeArena.cs, SmokeLimbRig.cs  # Headless smoke-test drivers
 ├── scenes/
