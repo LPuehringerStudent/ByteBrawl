@@ -4,3 +4,14 @@
 
 [node name="Main" type="Node"]
 script = ExtResource("1")
+
+[node name="Title" type="Label" parent="."]
+text = "BYTEBRAWL — W/S select, J confirm, K quit"
+
+[node name="LocalVersus" type="Label" parent="."]
+offset_top = 32.0
+text = "Local Versus"
+
+[node name="Training" type="Label" parent="."]
+offset_top = 56.0
+text = "Training"
