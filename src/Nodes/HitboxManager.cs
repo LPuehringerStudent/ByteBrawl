@@ -20,8 +20,7 @@ public partial class HitboxManager : Node, IHitboxManager
         hb.AddChild(shape);
         hb.AreaEntered += area =>
         {
-            if (hb.HasHit || area is not Hurtbox hurt) return;
-            var defender = hurt.Owner;
+            if (hb.HasHit || area is not Hurtbox hurt || hurt.OwnerFighter is not { } defender) return;
             if (defender == hb.Attacker) return;
             Rules.ApplyHit(hb.Attacker, defender, hb.Attack);
             hb.HasHit = true;

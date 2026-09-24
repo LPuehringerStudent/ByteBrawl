@@ -33,8 +33,9 @@ public partial class CombatDebugDraw : Node2D
             foreach (var f in new[] { P1, P2 })
             {
                 if (f == null) continue;
-                DrawRect(new Rect2(f.Position - new Vector2(6, 10), new Vector2(12, 20)),
-                    new Color(0, 1, 0, 0.4f), true);
+                foreach (var hurtbox in f.Rig.Hurtboxes)
+                    DrawCircle(hurtbox.GlobalPosition, hurtbox.Radius * Mathf.Abs(f.Rig.Scale.X),
+                        new Color(1, 1, 1, 0.35f));
             }
         }
         if (!ShowHitboxes || Hitboxes == null) return;

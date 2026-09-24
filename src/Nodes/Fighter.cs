@@ -10,6 +10,7 @@ public partial class Fighter : CharacterBody2D, IFighter
     [Export] public int PlayerIndex = 1;
     public FighterStateMachine Fsm { get; private set; } = null!;
     public ElementalMeter Meter { get; } = new();
+    public LimbRig Rig => _rig;
 
     private IHitboxManager _hitboxes = null!;
     private LimbRig _rig = null!;
@@ -35,10 +36,8 @@ public partial class Fighter : CharacterBody2D, IFighter
         AddChild(_rig);
         var posePlayer = new PosePlayer { Rig = _rig, Name = "PosePlayer" };
         AddChild(posePlayer);
-        var hurt = new Hurtbox { Owner = this };
-        var hurtShape = new CollisionShape2D { Shape = new RectangleShape2D { Size = new Vector2(12, 20) } };
-        hurt.AddChild(hurtShape);
-        AddChild(hurt);
+        foreach (var hurtbox in _rig.Hurtboxes)
+            hurtbox.OwnerFighter = this;
         _hitboxes = GetParent().GetNode<HitboxManager>("HitboxManager");
         Fsm = new FighterStateMachine(this, _hitboxes, ByteMoveset.Create());
     }

@@ -6,11 +6,15 @@ namespace ByteBrawl.Nodes;
 //   pelvis -> far leg (behind)
 //   pelvis -> torso -> backpack, far arm (behind), head, near arm (front)
 //   pelvis -> near leg (front)
+// Every body part except the backpack carries a hurtbox circle at its
+// segment midpoint (Ultimate-style per-part hurtboxes).
 public partial class LimbRig : Node2D
 {
     public const int PartCount = 16;
+    public const int HurtboxCount = 15;
 
     public Limb Find(string name) => (Limb)FindChild(name, recursive: true, owned: false)!;
+    public readonly List<Hurtbox> Hurtboxes = new();
 
     public static LimbRig CreatePlaceholder()
     {
@@ -21,8 +25,10 @@ public partial class LimbRig : Node2D
         var rig = new LimbRig();
 
         var pelvis = Limb.Create("Pelvis", new Vector2(10, 5), new Vector2(5, 2), mid);
+        AttachHurtbox(rig, pelvis, new Vector2(0, 0.5f), 4.5f);
         var torso = Limb.Create("Torso", new Vector2(10, 10), new Vector2(5, 10), near);
         torso.Position = new Vector2(0, -3);
+        AttachHurtbox(rig, torso, new Vector2(0, -5), 5f);
         pelvis.AddChild(torso);
 
         var backpack = Limb.Create("Backpack", new Vector2(3, 7), new Vector2(1.5f, 1), far, z: -1);
@@ -31,17 +37,18 @@ public partial class LimbRig : Node2D
 
         var head = Limb.Create("Head", new Vector2(8, 8), new Vector2(4, 8), near.Lerp(Colors.White, 0.2f), z: 1);
         head.Position = new Vector2(0, -10);
+        AttachHurtbox(rig, head, new Vector2(0, -4), 4f);
         torso.AddChild(head);
 
         // arms: shoulder -> elbow -> hand
-        var farArm = Arm("Far", far, z: -1, shoulder: new Vector2(2, -9));
-        var nearArm = Arm("Near", near, z: 1, shoulder: new Vector2(8, -9));
+        var farArm = Arm(rig, "Far", far, z: -1, shoulder: new Vector2(2, -9));
+        var nearArm = Arm(rig, "Near", near, z: 1, shoulder: new Vector2(8, -9));
         torso.AddChild(farArm);
         torso.AddChild(nearArm);
 
         // legs: hip -> knee -> foot
-        var farLeg = Leg("Far", far, z: -1, hip: new Vector2(2, 2));
-        var nearLeg = Leg("Near", near, z: 1, hip: new Vector2(6, 2));
+        var farLeg = Leg(rig, "Far", far, z: -1, hip: new Vector2(2, 2));
+        var nearLeg = Leg(rig, "Near", near, z: 1, hip: new Vector2(6, 2));
         pelvis.AddChild(farLeg);
         pelvis.AddChild(nearLeg);
 
@@ -49,29 +56,43 @@ public partial class LimbRig : Node2D
         return rig;
     }
 
-    private static Limb Arm(string side, Color color, int z, Vector2 shoulder)
+    private static Limb Arm(LimbRig rig, string side, Color color, int z, Vector2 shoulder)
     {
         var upper = Limb.Create($"{side}UpperArm", new Vector2(3, 7), new Vector2(1.5f, 0), color, z);
         upper.Position = shoulder;
+        AttachHurtbox(rig, upper, new Vector2(0, 3.5f), 2.6f);
         var fore = Limb.Create($"{side}Forearm", new Vector2(3, 7), new Vector2(1.5f, 0), color, z);
         fore.Position = new Vector2(0, 7);
+        AttachHurtbox(rig, fore, new Vector2(0, 3.5f), 2.3f);
         var hand = Limb.Create($"{side}Hand", new Vector2(3, 3), new Vector2(1.5f, 0), color.Darkened(0.1f), z);
         hand.Position = new Vector2(0, 7);
+        AttachHurtbox(rig, hand, new Vector2(0, 1.5f), 1.8f);
         fore.AddChild(hand);
         upper.AddChild(fore);
         return upper;
     }
 
-    private static Limb Leg(string side, Color color, int z, Vector2 hip)
+    private static Limb Leg(LimbRig rig, string side, Color color, int z, Vector2 hip)
     {
         var thigh = Limb.Create($"{side}Thigh", new Vector2(4, 8), new Vector2(2, 0), color, z);
         thigh.Position = hip;
+        AttachHurtbox(rig, thigh, new Vector2(0, 4), 3.2f);
         var shin = Limb.Create($"{side}Shin", new Vector2(4, 8), new Vector2(2, 0), color, z);
         shin.Position = new Vector2(0, 8);
+        AttachHurtbox(rig, shin, new Vector2(0, 4), 2.8f);
         var foot = Limb.Create($"{side}Foot", new Vector2(5, 3), new Vector2(2, 1), color.Darkened(0.1f), z);
         foot.Position = new Vector2(0, 8);
+        AttachHurtbox(rig, foot, new Vector2(0, 1), 2f);
         shin.AddChild(foot);
         thigh.AddChild(shin);
         return thigh;
+    }
+
+    private static void AttachHurtbox(LimbRig rig, Limb limb, Vector2 localCenter, float radius)
+    {
+        var area = new Hurtbox { Radius = radius, Position = localCenter };
+        area.AddChild(new CollisionShape2D { Shape = new CircleShape2D { Radius = radius } });
+        limb.AddChild(area);
+        rig.Hurtboxes.Add(area);
     }
 }
