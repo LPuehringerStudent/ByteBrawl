@@ -9,4 +9,6 @@ public partial class Hitbox : Area2D
     public AttackData Attack = null!;
     public int FramesRemaining;
     public bool HasHit;
+    public float Width;
+    public float Height;
 }

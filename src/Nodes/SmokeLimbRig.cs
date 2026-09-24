@@ -8,7 +8,6 @@ public partial class SmokeLimbRig : Node2D
     {
         var rig = LimbRig.CreatePlaceholder();
         AddChild(rig);
-        var before = rig.Find("NearArm").RotationDegrees;
         rig.Find("NearArm").RotationDegrees = -90f;
         var ok = rig.Find("NearArm").RotationDegrees == -90f
                  && rig.Find("Torso").GetNode<Limb>("NearLeg") != null;

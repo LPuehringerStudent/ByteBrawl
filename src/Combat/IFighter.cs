@@ -6,7 +6,7 @@ public interface IFighter
 {
     float Damage { get; set; }
     int Stocks { get; set; }
-    int Facing { get; }
+    int Facing { get; set; }
     Vector2 Position { get; set; }
     Vector2 Velocity { get; set; }
     bool IsGrounded { get; }
@@ -15,6 +15,7 @@ public interface IFighter
     bool ShieldActive { get; set; }
     float ShieldHealth { get; set; }
     ElementalMeter Meter { get; }
+    IElementalFrenzy? Frenzy { get; set; }
     void TakeDamage(float amount);
     void ApplyKnockback(Vector2 vector);
     void EnterHitstun(int frames);

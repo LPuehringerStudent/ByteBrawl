@@ -34,7 +34,11 @@ public partial class CombatDebugDraw : Node2D
         foreach (var child in Hitboxes.GetChildren())
         {
             if (child is not Hitbox hb) continue;
-            DrawCircle(hb.Position, hb.Attack.Radius, new Color(1, 0, 0, 0.4f));
+            if (hb.Attack.Shape == HitboxShape.Box)
+                DrawRect(new Rect2(hb.Position - new Vector2(hb.Width / 2, hb.Height / 2), new Vector2(hb.Width, hb.Height)),
+                    new Color(1, 0, 0, 0.4f), true);
+            else
+                DrawCircle(hb.Position, hb.Attack.Radius, new Color(1, 0, 0, 0.4f));
             var dir = hb.Attack.Direction * hb.Attacker.Facing * 20f;
             DrawLine(hb.Position, hb.Position + dir, new Color(1, 1, 0), 1f);
         }

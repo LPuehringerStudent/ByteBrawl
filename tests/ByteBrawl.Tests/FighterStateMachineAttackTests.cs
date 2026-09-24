@@ -64,9 +64,7 @@ public class FighterStateMachineAttackTests
 
     [Fact] public void FullCharge_SetsChargingFullOnFighter()
     {
-        var f = new FakeFighter();
         var hb = new FakeHitboxManager();
-        var fsm = new FighterStateMachine(f, hb, ByteMoveset.Create());
         var full = false;
         // FakeFighter ignores SetChargingFull; observe via a small subclass instead.
         var observing = new ObservingFighter(() => full = true);

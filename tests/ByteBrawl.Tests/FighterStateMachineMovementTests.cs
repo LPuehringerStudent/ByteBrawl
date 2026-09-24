@@ -72,6 +72,16 @@ public class FighterStateMachineMovementTests
         Assert.Equal(-220, f.Velocity.Y, 0.01f);
     }
 
+    [Fact] public void RunLeftThenNeutral_FacingPersists()
+    {
+        var (fsm, f) = NewFsm();
+        fsm.Update(Neutral() with { MoveX = -1 });
+        Assert.Equal(-1, f.Facing);
+        fsm.Update(Neutral());
+        Assert.Equal(FighterState.Idle, fsm.CurrentState);
+        Assert.Equal(-1, f.Facing);
+    }
+
     [Fact] public void Run_SetsHorizontalVelocity()
     {
         var (fsm, f) = NewFsm();

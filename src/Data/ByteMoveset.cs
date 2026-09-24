@@ -30,13 +30,16 @@ public static class ByteMoveset
             {
                 new AttackStage { Id = "byte-special-1", BaseDamage = 2, BaseKnockback = 45,
                     Scaling = 0, Direction = new Vector2(0.8f, -0.2f), HitstunFrames = 10,
-                    ActiveFrames = 4, SpawnFrame = 4, OffsetX = 16, OffsetY = -2, Width = 16, Height = 18 },
+                    ActiveFrames = 4, SpawnFrame = 4, OffsetX = 16, OffsetY = -2, Width = 16, Height = 18,
+                    Shape = HitboxShape.Box },
                 new AttackStage { Id = "byte-special-2", BaseDamage = 2, BaseKnockback = 55,
                     Scaling = 0, Direction = new Vector2(0.8f, -0.2f), HitstunFrames = 10,
-                    ActiveFrames = 4, SpawnFrame = 12, OffsetX = 24, OffsetY = -2, Width = 18, Height = 18 },
+                    ActiveFrames = 4, SpawnFrame = 12, OffsetX = 24, OffsetY = -2, Width = 18, Height = 18,
+                    Shape = HitboxShape.Box },
                 new AttackStage { Id = "byte-special-3", BaseDamage = 5, BaseKnockback = 180,
                     Scaling = 1.3f, Direction = new Vector2(0.8f, -0.8f), HitstunFrames = 16,
-                    ActiveFrames = 5, SpawnFrame = 22, OffsetX = 34, OffsetY = -2, Width = 20, Height = 20 },
+                    ActiveFrames = 5, SpawnFrame = 22, OffsetX = 34, OffsetY = -2, Width = 20, Height = 20,
+                    Shape = HitboxShape.Box },
             },
         };
 

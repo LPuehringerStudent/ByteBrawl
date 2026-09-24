@@ -60,13 +60,13 @@ A passing smoke run prints `SMOKE PASS`. Note: the `godot` binary must be a .NET
 │   ├── fighter.tscn        # Fighter instance scene
 │   ├── smoke_arena.tscn    # Headless arena smoke test
 │   └── smoke_limb_rig.tscn # Headless limb-rig smoke test
-├── tests/ByteBrawl.Tests/  # xUnit unit tests (22 tests)
+├── tests/ByteBrawl.Tests/  # xUnit unit tests (23 tests)
 └── project.godot
 ```
 
 ## Key conventions
 
-- **`src/Combat` stays engine-free:** game logic is plain C# against `IFighter` / `IHitboxManager` interfaces so it runs under xUnit without Godot. Do not introduce Godot types into `src/Combat`; add seams in the interfaces instead.
+- **`src/Combat` stays engine-free:** game logic is plain C# against `IFighter` / `IHitboxManager` interfaces so it runs under xUnit without Godot. Do not introduce Godot types into `src/Combat`; add seams in the interfaces instead. (More precisely: combat code does use Godot value types such as `Vector2`, but no node types — it is exercised via xUnit with GodotSharp referenced.)
 - **`src/Nodes` is the only place Godot node types appear.** `Fighter` implements `IFighter` and wraps the state machine.
 - **Combat tuning data lives in `src/Data/`** (movesets, attack stats). Balance changes go there, not in logic code.
 - **Tests use fakes/mocks:** `TestDoubles.cs` provides fake fighters and hitbox managers so `src/Combat` tests run in plain `dotnet test`.

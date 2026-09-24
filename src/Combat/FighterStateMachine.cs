@@ -22,6 +22,7 @@ public class FighterStateMachine
     private FighterState _chargeFiredState;
 
     public FighterState CurrentState => _state;
+    public int StateFrames => _stateFrames;
 
     private FighterState _state = FighterState.Idle;
     private int _stateFrames;
@@ -125,6 +126,7 @@ public class FighterStateMachine
             if (actions.MoveX != 0)
             {
                 SetState(FighterState.Run);
+                _fighter.Facing = actions.MoveX > 0 ? 1 : -1;
                 _fighter.Velocity = new Vector2(actions.MoveX * _moveset.Stats.RunSpeed, _fighter.Velocity.Y);
             }
             else
@@ -136,7 +138,10 @@ public class FighterStateMachine
         else
         {
             if (actions.MoveX != 0)
+            {
+                _fighter.Facing = actions.MoveX > 0 ? 1 : -1;
                 _fighter.Velocity = new Vector2(actions.MoveX * _moveset.Stats.RunSpeed, _fighter.Velocity.Y);
+            }
             SetState(_fighter.Velocity.Y < 0 ? FighterState.Jump : FighterState.Fall);
         }
 

@@ -17,6 +17,7 @@ public class FakeFighter : IFighter
     public bool ShieldActive { get; set; }
     public float ShieldHealth { get; set; } = 100;
     public ElementalMeter Meter { get; } = new();
+    public IElementalFrenzy? Frenzy { get; set; }
 
     public void TakeDamage(float amount) => Damage += amount;
     public void ApplyKnockback(Vector2 v) => Velocity += v;

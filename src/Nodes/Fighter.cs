@@ -17,12 +17,14 @@ public partial class Fighter : CharacterBody2D, IFighter
 
     public float Damage { get; set; }
     public int Stocks { get; set; } = 3;
-    public int Facing => Velocity.X < -1 ? -1 : 1;
+    private int _facing = 1;
+    public int Facing { get => _facing; set => _facing = value; }
     public bool IsGrounded => IsOnFloor();
     public int HitstunFrames { get; set; }
     public int InvincibleFrames { get; set; }
     public bool ShieldActive { get; set; }
     public float ShieldHealth { get; set; } = 100;
+    public IElementalFrenzy? Frenzy { get; set; }
 
     public override void _Ready()
     {
@@ -45,7 +47,7 @@ public partial class Fighter : CharacterBody2D, IFighter
         if (InvincibleFrames > 0) InvincibleFrames--;
         Fsm.Update(LocalInput.Capture(PlayerIndex));
         MoveAndSlide();
-        GetNode<PosePlayer>("PosePlayer").Play(Fsm.CurrentState, 0);
+        GetNode<PosePlayer>("PosePlayer").Play(Fsm.CurrentState, Fsm.StateFrames);
     }
 
     public void TakeDamage(float amount) => Damage += amount;
