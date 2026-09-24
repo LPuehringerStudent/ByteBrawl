@@ -50,6 +50,7 @@ public partial class Fighter : CharacterBody2D, IFighter
         if (InvincibleFrames > 0) InvincibleFrames--;
         Fsm.Update(LocalInput.Capture(PlayerIndex));
         MoveAndSlide();
+        _rig.Scale = new Vector2(Facing, 1); // mirror the rig to face left/right
         GetNode<PosePlayer>("PosePlayer").Play(Fsm.CurrentState, Fsm.StateFrames);
     }
 
