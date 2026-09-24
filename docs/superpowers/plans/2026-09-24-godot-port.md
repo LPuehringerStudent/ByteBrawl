@@ -51,7 +51,7 @@ src/
     ArenaCamera.cs             2-player camera
     Fighter.cs                 CharacterBody2D implementing IFighter
     LocalInput.cs              keyboard -> ActionFrame
-    DummyInput.cs              empty ActionFrame source
+    (dummy input = LocalInput.Capture(0), see Task 6)
     Limb.cs                    one joint-pivot sprite
     LimbRig.cs                 puppet hierarchy
     Pose.cs / PoseLibrary.cs   pose keyframes
@@ -61,7 +61,7 @@ src/
     Hurtbox.cs                 Area2D on fighter
     CombatDebugDraw.cs         hitbox/knockback overlay
 scenes/
-  main.tscn  arena.tscn  fighter.tscn  smoke_limb_rig.tscn  smoke_arena.tscn
+  main.tscn  arena.tscn  arena_training.tscn  fighter.tscn  smoke_limb_rig.tscn  smoke_arena.tscn
 tests/
   ByteBrawl.Tests/
     ByteBrawl.Tests.csproj
@@ -1260,11 +1260,13 @@ git commit -m "feat: attacks, multi-hit chains, and charge system"
 
 ---
 
-### Task 6: Fighter node with limb rig and pose player
+### Task 6: Fighter node with limb rig, hitboxes, and input
 
 **Files:**
-- Create: `src/Nodes/Limb.cs`, `src/Nodes/LimbRig.cs`, `src/Nodes/Pose.cs`, `src/Nodes/PoseLibrary.cs`, `src/Nodes/PosePlayer.cs`, `src/Nodes/Fighter.cs`
+- Create: `src/Nodes/Limb.cs`, `src/Nodes/LimbRig.cs`, `src/Nodes/Pose.cs`, `src/Nodes/PoseLibrary.cs`, `src/Nodes/PosePlayer.cs`, `src/Nodes/Fighter.cs`, `src/Nodes/LocalInput.cs`, `src/Nodes/Hurtbox.cs`, `src/Nodes/Hitbox.cs`, `src/Nodes/HitboxManager.cs`
 - Create: `scenes/fighter.tscn`, `scenes/smoke_limb_rig.tscn`, `src/Nodes/SmokeLimbRig.cs`
+
+(Amended per human ruling: `LocalInput`, `Hurtbox`, `Hitbox`, and `HitboxManager` were moved here from Task 7 because `Fighter.cs` and `HitboxManager.cs` reference them — the project must compile at the end of every task.)
 
 **Interfaces:**
 - Consumes: Tasks 2-5 logic.
@@ -1478,65 +1480,9 @@ public partial class Fighter : CharacterBody2D, IFighter
 
 (The FSM reads `IsGrounded` via the interface: add `public bool IsGrounded => IsOnFloor();` to `Fighter`.)
 
-- [ ] **Step 2: Write the smoke scene**
+- [ ] **Step 2: Write input capture and hitbox nodes**
 
-`scenes/smoke_limb_rig.tscn`:
-```
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://src/Nodes/SmokeLimbRig.cs" id="1"]
-
-[node name="Smoke" type="Node2D"]
-script = ExtResource("1")
-```
-
-`src/Nodes/SmokeLimbRig.cs`:
-```csharp
-using Godot;
-
-namespace ByteBrawl.Nodes;
-
-public partial class SmokeLimbRig : Node2D
-{
-    public override void _Ready()
-    {
-        var rig = LimbRig.CreatePlaceholder();
-        AddChild(rig);
-        var before = rig.Find("NearArm").RotationDegrees;
-        rig.Find("NearArm").RotationDegrees = -90f;
-        var ok = rig.Find("NearArm").RotationDegrees == -90f
-                 && rig.Find("Torso").GetNode<Limb>("NearLeg") != null;
-        GD.Print(ok ? "SMOKE PASS" : "SMOKE FAIL");
-        GetTree().Quit(ok ? 0 : 1);
-    }
-}
-```
-
-- [ ] **Step 3: Run the smoke scene**
-
-Run: `timeout 30 godot --headless --path . res://scenes/smoke_limb_rig.tscn 2>&1 | grep -E "SMOKE|ERROR"`
-Expected: `SMOKE PASS`.
-
-- [ ] **Step 4: Build check and commit**
-
-Run: `dotnet build ByteBrawl.csproj 2>&1 | tail -3`
-Expected: Build succeeded.
-Then: `git add -A && git commit -m "feat: fighter node with segmented limb rig and pose player"`
-
----
-
-### Task 7: Arena — stage, hitboxes, camera, HUD, training dummy
-
-**Files:**
-- Create: `src/Nodes/Hitbox.cs`, `src/Nodes/HitboxManager.cs`, `src/Nodes/Hurtbox.cs`, `src/Nodes/LocalInput.cs`, `src/Nodes/DummyInput.cs`, `src/Nodes/Arena.cs`, `src/Nodes/ArenaCamera.cs`, `scenes/arena.tscn`, `scenes/smoke_arena.tscn`, `src/Nodes/SmokeArena.cs`
-
-**Interfaces:**
-- Consumes: `Fighter`, `MatchRules`, `Combat` logic.
-- Produces: `class HitboxManager : Node, IHitboxManager` — `_PhysicsProcess` ticks lifetimes, uses `Area2D` overlap (signals `AreaEntered`) against `Hurtbox`s; holds `MatchRules? Rules` and both fighters. `static class LocalInput { ActionFrame Capture(int playerIndex); }` (keyboard mapping per Global Constraints; uses `Input.IsPhysicalKeyPressed` and a per-player `HashSet<Key>` for JustPressed detection — store previous-frame keys in `Fighter` or a static dictionary keyed by player index). `class Arena : Node2D` — `[Export] public bool Training;`, rebuilds from `scenes/fighter.tscn`, stage rectangles matching the snapshot layout (main floor 3×14 tiles at rows 10-12 → Rect2(32, 160, 224, 48), two thin platforms Rect2(32, 80, 48, 16) and Rect2(224, 80, 48, 16)), blast zone `Rect2(-160, -180, 640, 540)`.
-
-- [ ] **Step 1: Write input capture**
-
-`src/Nodes/LocalInput.cs`:
+`src/Nodes/LocalInput.cs` (note: `Capture(0)` — or any index other than 1/2 — returns an empty frame for the training dummy; that is the intended dummy behavior):
 ```csharp
 using ByteBrawl.Combat;
 using Godot;
@@ -1546,34 +1492,6 @@ namespace ByteBrawl.Nodes;
 public static class LocalInput
 {
     private static readonly Dictionary<int, HashSet<Key>> Prev = new();
-
-    public static ActionFrame Capture(int player)
-    {
-        var keys = P1;
-        if (player == 2) keys = P2;
-
-        var down = keys.ToDictionary(k => k.Key, k => Input.IsPhysicalKeyPressed(k.Value));
-        Prev.TryAdd(player, new HashSet<Key>());
-        var prev = Prev[player];
-        ActionFrame frame = new()
-        {
-            MoveX = (Down(down, "right") ? 1 : 0) - (Down(down, "left") ? 1 : 0),
-            MoveY = (Down(down, "down") ? 1 : 0) - (Down(down, "up") ? 1 : 0),
-            JumpPressed = Pressed(down, prev, "jump"), JumpHeld = Down(down, "jump"),
-            AttackLight = Pressed(down, prev, "light"), AttackLightHeld = Down(down, "light"),
-            AttackHeavy = Pressed(down, prev, "heavy"), AttackHeavyHeld = Down(down, "heavy"),
-            AttackSpecial = Pressed(down, prev, "special"), AttackSpecialHeld = Down(down, "special"),
-            GadgetPressed = Pressed(down, prev, "gadget"), GadgetHeld = Down(down, "gadget"),
-            ShieldPressed = Pressed(down, prev, "shield"), ShieldHeld = Down(down, "shield"),
-            GrabPressed = Pressed(down, prev, "grab"), GrabHeld = Down(down, "grab"),
-        };
-        Prev[player] = down.Values.Where(v => v).ToHashSet();
-        return frame;
-    }
-
-    private static bool Down(Dictionary<string, bool> d, string k) => d[k];
-    private static bool Pressed(Dictionary<string, bool> d, HashSet<Key> prev, string k)
-        => d[k] && !prev.Contains(KeyMap[k]);
 
     private static readonly Dictionary<string, Key> P1 = new()
     {
@@ -1589,13 +1507,37 @@ public static class LocalInput
         ["gadget"] = Key.Kp4, ["shield"] = Key.Kp3, ["grab"] = Key.Kp6,
     };
 
-    private static Dictionary<string, Key> KeyMap => P1; // name->Key lookup for prev set; both players share key names
+    public static ActionFrame Capture(int player)
+    {
+        if (player != 1 && player != 2) return new ActionFrame(); // dummy
+        var map = player == 1 ? P1 : P2;
+        var prev = Prev.TryGetValue(player, out var p) ? p : new HashSet<Key>();
+
+        ActionFrame frame = new()
+        {
+            MoveX = (IsDown(map, "right") ? 1 : 0) - (IsDown(map, "left") ? 1 : 0),
+            MoveY = (IsDown(map, "down") ? 1 : 0) - (IsDown(map, "up") ? 1 : 0),
+            JumpPressed = Pressed(map, prev, "jump"), JumpHeld = IsDown(map, "jump"),
+            AttackLight = Pressed(map, prev, "light"), AttackLightHeld = IsDown(map, "light"),
+            AttackHeavy = Pressed(map, prev, "heavy"), AttackHeavyHeld = IsDown(map, "heavy"),
+            AttackSpecial = Pressed(map, prev, "special"), AttackSpecialHeld = IsDown(map, "special"),
+            GadgetPressed = Pressed(map, prev, "gadget"), GadgetHeld = IsDown(map, "gadget"),
+            ShieldPressed = Pressed(map, prev, "shield"), ShieldHeld = IsDown(map, "shield"),
+            GrabPressed = Pressed(map, prev, "grab"), GrabHeld = IsDown(map, "grab"),
+        };
+
+        Prev[player] = map.Where(kv => Input.IsPhysicalKeyPressed(kv.Value)).Select(kv => kv.Value).ToHashSet();
+        return frame;
+    }
+
+    private static bool IsDown(Dictionary<string, Key> map, string name) => Input.IsPhysicalKeyPressed(map[name]);
+    private static bool Pressed(Dictionary<string, Key> map, HashSet<Key> prev, string name)
+    {
+        var key = map[name];
+        return Input.IsPhysicalKeyPressed(key) && !prev.Contains(key);
+    }
 }
 ```
-
-Note: `Pressed` compares against the previous physical key set; store the physical `Key` enum values in `Prev` instead of names — keep `Prev` as `HashSet<Key>` and store `keys.Where(kv => down[kv.Key]).Select(kv => kv.Value)`.
-
-- [ ] **Step 2: Write Hitbox, Hurtbox, HitboxManager nodes**
 
 `src/Nodes/Hurtbox.cs`:
 ```csharp
@@ -1635,8 +1577,6 @@ namespace ByteBrawl.Nodes;
 public partial class HitboxManager : Node, IHitboxManager
 {
     public MatchRules? Rules;
-    public Fighter? Player1;
-    public Fighter? Player2;
 
     public void Spawn(IFighter attacker, AttackData attack, float offsetX, float offsetY, float width, float height)
     {
@@ -1675,7 +1615,73 @@ public partial class HitboxManager : Node, IHitboxManager
 }
 ```
 
-- [ ] **Step 3: Write Arena and ArenaCamera**
+Also add a `Hurtbox` to `Fighter._Ready()` (so hits can register once Task 7 wires the arena): inside `Fighter._Ready()`, after `_rig` setup:
+```csharp
+        var hurt = new Hurtbox { Owner = this };
+        var hurtShape = new CollisionShape2D { Shape = new RectangleShape2D { Size = new Vector2(12, 20) } };
+        hurt.AddChild(hurtShape);
+        AddChild(hurt);
+```
+
+- [ ] **Step 3: Write the smoke scene**
+
+`scenes/smoke_limb_rig.tscn`:
+```
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/Nodes/SmokeLimbRig.cs" id="1"]
+
+[node name="Smoke" type="Node2D"]
+script = ExtResource("1")
+```
+
+`src/Nodes/SmokeLimbRig.cs`:
+```csharp
+using Godot;
+
+namespace ByteBrawl.Nodes;
+
+public partial class SmokeLimbRig : Node2D
+{
+    public override void _Ready()
+    {
+        var rig = LimbRig.CreatePlaceholder();
+        AddChild(rig);
+        var before = rig.Find("NearArm").RotationDegrees;
+        rig.Find("NearArm").RotationDegrees = -90f;
+        var ok = rig.Find("NearArm").RotationDegrees == -90f
+                 && rig.Find("Torso").GetNode<Limb>("NearLeg") != null;
+        GD.Print(ok ? "SMOKE PASS" : "SMOKE FAIL");
+        GetTree().Quit(ok ? 0 : 1);
+    }
+}
+```
+
+- [ ] **Step 4: Run the smoke scene**
+
+Run: `timeout 30 godot --headless --path . res://scenes/smoke_limb_rig.tscn 2>&1 | grep -E "SMOKE|ERROR"`
+Expected: `SMOKE PASS`.
+
+- [ ] **Step 5: Build check and commit**
+
+Run: `dotnet build ByteBrawl.csproj 2>&1 | tail -3`
+Expected: Build succeeded.
+Then: `git add -A && git commit -m "feat: fighter node with segmented limb rig and pose player"`
+
+---
+
+### Task 7: Arena — stage, hitboxes, camera, HUD, training dummy
+
+**Files:**
+- Create: `src/Nodes/Arena.cs`, `src/Nodes/ArenaCamera.cs`, `scenes/arena.tscn`, `scenes/arena_training.tscn`, `scenes/smoke_arena.tscn`, `src/Nodes/SmokeArena.cs`
+
+(`Hitbox.cs`, `Hurtbox.cs`, `HitboxManager.cs`, and `LocalInput.cs` were moved to Task 6 by amendment — do not recreate them here.)
+
+**Interfaces:**
+- Consumes: `Fighter`, `HitboxManager`, `LocalInput`, `MatchRules`, `Combat` logic (all from earlier tasks).
+- Produces: `class Arena : Node2D` — `[Export] public bool Training;`, instantiates two fighters from `scenes/fighter.tscn`, stage rectangles matching the snapshot layout (main floor 3×14 tiles at rows 10-12 → Rect2(32, 160, 224, 48), two thin platforms Rect2(32, 80, 48, 16) and Rect2(224, 80, 48, 16)), blast zone `Rect2(-160, -180, 640, 540)`.
+
+- [ ] **Step 1: Write Arena and ArenaCamera**
 
 `src/Nodes/ArenaCamera.cs` (simple port of CameraController: midpoint + zoom to fit both, deadzone omitted for draft):
 ```csharp
@@ -1801,7 +1807,18 @@ script = ExtResource("1")
 script = ExtResource("1")
 ```
 
-- [ ] **Step 4: Write and run the arena smoke scene**
+`scenes/arena_training.tscn` (same scene with Training enabled):
+```
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/Nodes/Arena.cs" id="1"]
+
+[node name="Arena" type="Node2D"]
+script = ExtResource("1")
+Training = true
+```
+
+- [ ] **Step 2: Write and run the arena smoke scene**
 
 `src/Nodes/SmokeArena.cs`:
 ```csharp
@@ -1841,7 +1858,7 @@ script = ExtResource("1")
 Run: `timeout 30 godot --headless --path . res://scenes/smoke_arena.tscn 2>&1 | grep -E "SMOKE|ERROR|Unhandled"`
 Expected: `SMOKE PASS`, no unhandled exceptions. Also run: `dotnet test tests/ByteBrawl.Tests 2>&1 | tail -3` — all still PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add -A
