@@ -26,7 +26,7 @@ public class FakeFighter : IFighter
     public void DeactivateShield() => ShieldActive = false;
     public void LoseStock() { Stocks -= 1; Damage = 0; }
     public void Respawn(Vector2 position, int frames) { Position = position; Damage = 0; HitstunFrames = 0; EnterInvincibility(frames); }
-    public void SetChargingFull(bool value) { }
+    public virtual void SetChargingFull(bool value) { }
 }
 
 public class FakeHitboxManager : IHitboxManager

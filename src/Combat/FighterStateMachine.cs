@@ -11,6 +11,16 @@ public class FighterStateMachine
     public const int AirDodgeFrames = 20;
     public const float AirDodgeSpeed = 220f;
 
+    public const float ChargeAirDrag = 0.99f;
+    public const float ChargeGroundDrag = 0.8f;
+    public const float ChargeMaxFallSpeed = 120f;
+
+    private AttackStage[] _sequence = Array.Empty<AttackStage>();
+    private int _nextStageIndex;
+    private int _attackTotalFrames = DefaultAttackDuration;
+    private AttackData? _chargeAttack;
+    private FighterState _chargeFiredState;
+
     public FighterState CurrentState => _state;
 
     private FighterState _state = FighterState.Idle;
@@ -133,15 +143,92 @@ public class FighterStateMachine
         _stateFrames++;
     }
 
-    private void TickAttack(ActionFrame actions) => throw new NotImplementedException("Task 5");
-    private void TickCharge(ActionFrame actions) => throw new NotImplementedException("Task 5");
+    private void TickAttack(ActionFrame actions)
+    {
+        _stateFrames++;
+        while (_nextStageIndex < _sequence.Length &&
+               _stateFrames >= _sequence[_nextStageIndex].SpawnFrame)
+        {
+            var stage = _sequence[_nextStageIndex++];
+            _hitboxes.Spawn(_fighter, stage, stage.OffsetX, stage.OffsetY, stage.Width, stage.Height);
+        }
+        if (_stateFrames >= _attackTotalFrames)
+            SetState(_fighter.IsGrounded ? FighterState.Idle : FighterState.Fall);
+    }
+
+    private void TickCharge(ActionFrame actions)
+    {
+        if (_chargeAttack?.Charge is not { } charge) return;
+
+        var held = _chargeFiredState == FighterState.HeavyAttack
+            ? actions.AttackHeavyHeld
+            : actions.AttackSpecialHeld;
+
+        var drag = _fighter.IsGrounded ? ChargeGroundDrag : ChargeAirDrag;
+        var vy = _fighter.Velocity.Y * drag;
+        if (!_fighter.IsGrounded && vy > ChargeMaxFallSpeed) vy = ChargeMaxFallSpeed;
+        if (!_fighter.IsGrounded && vy < 0) vy *= drag;
+        _fighter.Velocity = new Vector2(_fighter.Velocity.X * drag, vy);
+
+        _stateFrames++;
+        var full = _stateFrames >= charge.MaxChargeFrames;
+        _fighter.SetChargingFull(full);
+
+        var autoRelease = _stateFrames >= charge.MaxChargeFrames + charge.MaxHoldFrames;
+        var released = !held;
+        if ((full && released) || autoRelease)
+            FireCharged(charge.MaxChargeFrames);
+        else if (!full && released && _stateFrames >= charge.MinChargeFrames)
+            FireCharged(_stateFrames);
+    }
+
+    private void FireCharged(int chargeFrames)
+    {
+        if (_chargeAttack?.Charge is not { } charge) return;
+        var frames = Math.Clamp(chargeFrames, 0, charge.MaxChargeFrames);
+        var charged = new AttackData
+        {
+            Id = $"{_chargeAttack.Id}-charged",
+            BaseDamage = _chargeAttack.BaseDamage + frames * charge.DamageGrowth,
+            BaseKnockback = _chargeAttack.BaseKnockback + frames * charge.KnockbackGrowth,
+            Scaling = _chargeAttack.Scaling,
+            Direction = _chargeAttack.Direction,
+            HitstunFrames = _chargeAttack.HitstunFrames,
+            ActiveFrames = _chargeAttack.ActiveFrames,
+            Shape = _chargeAttack.Shape,
+            Radius = _chargeAttack.Radius,
+        };
+        _fighter.SetChargingFull(false);
+        _chargeAttack = null;
+        StartAttack(_chargeFiredState, charged);
+    }
 
     private void StartAttack(FighterState state, AttackData attack)
     {
         _fighter.DeactivateShield();
+
+        if (attack.Charge is { } charge && !attack.Id.EndsWith("-charged"))
+        {
+            _chargeAttack = attack;
+            _chargeFiredState = state;
+            SetState(FighterState.Charging);
+            _attackCooldown = charge.MaxChargeFrames + charge.MaxHoldFrames + DefaultAttackDuration;
+            return;
+        }
+
         SetState(state);
-        _attackCooldown = DefaultAttackDuration;
-        _hitboxes.Spawn(_fighter, attack, 14, -2, 12, 16);
+        _sequence = attack.Stages.Count > 0
+            ? attack.Stages.OrderBy(s => s.SpawnFrame).ToArray()
+            : Array.Empty<AttackStage>();
+        _nextStageIndex = 0;
+        var last = _sequence.LastOrDefault();
+        _attackTotalFrames = last != null
+            ? last.SpawnFrame + last.ActiveFrames + AttackRecoveryFrames
+            : DefaultAttackDuration;
+        _attackCooldown = _attackTotalFrames;
+
+        if (_sequence.Length == 0)
+            _hitboxes.Spawn(_fighter, attack, 14, -2, 12, 16);
     }
 
     private void SetState(FighterState newState)
@@ -149,6 +236,11 @@ public class FighterStateMachine
         if (_state == newState) return;
         _state = newState;
         _stateFrames = 0;
+        if (newState != FighterState.Charging && _chargeAttack != null)
+        {
+            _chargeAttack = null;
+            _fighter.SetChargingFull(false);
+        }
         if (newState == FighterState.SpotDodge)
             _fighter.EnterInvincibility(SpotDodgeFrames);
     }
