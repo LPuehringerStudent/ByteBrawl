@@ -6,6 +6,8 @@ namespace ByteBrawl.Nodes;
 public partial class HitboxManager : Node, IHitboxManager
 {
     public MatchRules? Rules;
+    public Fighter? Player1;
+    public Fighter? Player2;
 
     public void Spawn(IFighter attacker, AttackData attack, float offsetX, float offsetY, float width, float height)
     {

@@ -28,7 +28,7 @@ public partial class Fighter : CharacterBody2D, IFighter
     {
         _rig = LimbRig.CreatePlaceholder();
         AddChild(_rig);
-        var posePlayer = new PosePlayer { Rig = _rig };
+        var posePlayer = new PosePlayer { Rig = _rig, Name = "PosePlayer" };
         AddChild(posePlayer);
         var hurt = new Hurtbox { Owner = this };
         var hurtShape = new CollisionShape2D { Shape = new RectangleShape2D { Size = new Vector2(12, 20) } };
