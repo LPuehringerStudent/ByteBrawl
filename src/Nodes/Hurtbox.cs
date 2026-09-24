@@ -2,10 +2,12 @@ using Godot;
 
 namespace ByteBrawl.Nodes;
 
-// One body-part hurtbox. The rig carries one per limb (circle at the
-// segment midpoint); Fighter assigns OwnerFighter on _Ready.
+// One body-part hurtbox: a capsule spanning the limb segment
+// (joint to joint), child of the limb so it follows pose and facing.
+// Fighter assigns OwnerFighter on _Ready.
 public partial class Hurtbox : Area2D
 {
     public Fighter? OwnerFighter;
     public float Radius;
+    public float Height;
 }

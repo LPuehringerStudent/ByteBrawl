@@ -30,12 +30,23 @@ public partial class CombatDebugDraw : Node2D
     {
         if (ShowHurtboxes)
         {
+            var fill = new Color(1, 1, 1, 0.3f);
             foreach (var f in new[] { P1, P2 })
             {
                 if (f == null) continue;
+                var scale = Mathf.Abs(f.Rig.Scale.X);
                 foreach (var hurtbox in f.Rig.Hurtboxes)
-                    DrawCircle(hurtbox.GlobalPosition, hurtbox.Radius * Mathf.Abs(f.Rig.Scale.X),
-                        new Color(1, 1, 1, 0.35f));
+                {
+                    // Capsule: thick line along the segment + cap circles.
+                    var t = hurtbox.GlobalTransform;
+                    var r = hurtbox.Radius * scale;
+                    var half = (hurtbox.Height * 0.5f - hurtbox.Radius) * scale;
+                    var a = t * new Vector2(0, -half);
+                    var b = t * new Vector2(0, half);
+                    DrawLine(a, b, fill, r * 2);
+                    DrawCircle(a, r, fill);
+                    DrawCircle(b, r, fill);
+                }
             }
         }
         if (!ShowHitboxes || Hitboxes == null) return;
