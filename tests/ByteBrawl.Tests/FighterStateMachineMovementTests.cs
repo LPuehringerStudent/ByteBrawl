@@ -105,4 +105,49 @@ public class FighterStateMachineMovementTests
         Assert.Equal(FighterState.Run, fsm.CurrentState);
         Assert.Equal(120, f.Velocity.X, 0.01f);
     }
+
+    [Fact] public void AirJump_AppliesUpwardVelocityAndConsumes()
+    {
+        var (fsm, f) = NewFsm(false);
+        fsm.Update(Neutral() with { JumpPressed = true });
+        Assert.Equal(-280, f.Velocity.Y, 0.01f); // JumpSpeed from ByteMoveset stats
+        f.Velocity = new Vector2(0, 100); // simulate falling again
+        fsm.Update(Neutral() with { JumpPressed = true }); // second press: spent
+        Assert.Equal(100, f.Velocity.Y, 0.01f);
+    }
+
+    [Fact] public void Landing_ResetsAirJumpCounter()
+    {
+        var (fsm, f) = NewFsm(false);
+        fsm.Update(Neutral() with { JumpPressed = true }); // spend the air jump
+        f.Grounded = true;
+        fsm.Update(Neutral()); // land: counter resets
+        f.Grounded = false;
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true });
+        Assert.Equal(-280, f.Velocity.Y, 0.01f);
+    }
+
+    [Fact] public void Hitstun_DoesNotRefreshAirJump()
+    {
+        var (fsm, f) = NewFsm(false);
+        fsm.Update(Neutral() with { JumpPressed = true }); // spend it
+        f.HitstunFrames = 3; // get hit mid-air (counter must stay spent)
+        fsm.Update(Neutral());
+        f.HitstunFrames = 0;
+        fsm.Update(Neutral());
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true });
+        Assert.Equal(100, f.Velocity.Y, 0.01f);
+    }
+
+    [Fact] public void AirJump_BlockedDuringAttack()
+    {
+        var (fsm, f) = NewFsm(false);
+        fsm.Update(Neutral() with { AttackLight = true });
+        Assert.Equal(FighterState.LightAttack, fsm.CurrentState);
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true });
+        Assert.Equal(100, f.Velocity.Y, 0.01f);
+    }
 }

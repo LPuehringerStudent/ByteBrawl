@@ -30,6 +30,9 @@ public class FighterStateMachine
     private FighterState _state = FighterState.Idle;
     private int _stateFrames;
     private int _attackCooldown;
+    private int _airJumpsUsed;
+    private bool _recoveryUsed;
+    private bool _attacksLocked;
     private readonly IFighter _fighter;
     private readonly IHitboxManager _hitboxes;
     private readonly Moveset _moveset;
@@ -44,6 +47,13 @@ public class FighterStateMachine
     public void Update(ActionFrame actions)
     {
         if (_attackCooldown > 0) _attackCooldown--;
+
+        if (_fighter.IsGrounded)
+        {
+            _airJumpsUsed = 0;
+            _recoveryUsed = false;
+            _attacksLocked = false;
+        }
 
         if (_fighter.HitstunFrames > 0)
         {
@@ -132,8 +142,16 @@ public class FighterStateMachine
             return;
         }
 
-        if (actions.JumpPressed && _fighter.IsGrounded)
-            _fighter.Velocity = new Vector2(_fighter.Velocity.X, -_moveset.Stats.JumpSpeed);
+        if (actions.JumpPressed)
+        {
+            var groundedJump = _fighter.IsGrounded;
+            var airJump = !groundedJump && _airJumpsUsed < _moveset.Stats.AirJumps;
+            if (groundedJump || airJump)
+            {
+                _fighter.Velocity = new Vector2(_fighter.Velocity.X, -_moveset.Stats.JumpSpeed);
+                if (airJump) _airJumpsUsed++;
+            }
+        }
 
         if (actions.AttackLight && _attackCooldown == 0) { StartAttack(FighterState.LightAttack, _moveset.Get(AttackSlot.NeutralLight)); return; }
         if (actions.AttackHeavy && _attackCooldown == 0) { StartAttack(FighterState.HeavyAttack, _moveset.Get(AttackSlot.NeutralHeavy)); return; }
