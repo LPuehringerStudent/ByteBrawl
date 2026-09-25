@@ -51,7 +51,7 @@ public partial class Fighter : CharacterBody2D, IFighter
 
     public override void _PhysicsProcess(double delta)
     {
-        if (!IsOnFloor()) Velocity = new Vector2(Velocity.X, Velocity.Y + 800f * (float)delta);
+        if (!IsOnFloor()) Velocity = new Vector2(Velocity.X, FighterPhysics.GravityStep(Velocity.Y,800f,delta));
         if (HitstunFrames > 0) HitstunFrames--;
         if (InvincibleFrames > 0) InvincibleFrames--;
         if (_dropThroughFrames > 0 && --_dropThroughFrames == 0)
