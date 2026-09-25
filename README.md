@@ -90,6 +90,10 @@ timeout 30 godot --headless --path . res://scenes/smoke_limb_rig.tscn
 ├── tests/ByteBrawl.Tests/ # xUnit; Phaser-free fakes for IFighter/IHitboxManager
 ├── docs/
 │   ├── product-backlog.md           # what the game will become (scope reference)
+│   ├── combat/                      # technical deep-dives:
+│   │   ├── hitboxes-and-hurtboxes.md    # typed boxes, resolution flow, armor, debug overlay
+│   │   ├── fighter-state-machine.md     # states, transitions, limb rig, poses
+│   │   └── match-rules-and-movesets.md  # damage math, ring-out, moveset data model
 │   └── superpowers/                 # design specs + implementation plans
 └── AGENTS.md                          # the same guide, written for AI agents
 ```
