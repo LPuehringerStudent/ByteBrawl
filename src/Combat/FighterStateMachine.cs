@@ -199,12 +199,12 @@ public class FighterStateMachine
             {
                 SetState(FighterState.Run);
                 _fighter.Facing = actions.MoveX > 0 ? 1 : -1;
-                _fighter.Velocity = new Vector2(actions.MoveX * _moveset.Stats.RunSpeed, _fighter.Velocity.Y);
+                _fighter.Velocity = new Vector2(FighterPhysics.Locomotion(_fighter.Velocity.X, actions.MoveX, _moveset.Stats.RunSpeed, _fighter.IsGrounded), _fighter.Velocity.Y);
             }
             else
             {
                 SetState(FighterState.Idle);
-                _fighter.Velocity = new Vector2(0, _fighter.Velocity.Y);
+                _fighter.Velocity = new Vector2(FighterPhysics.Locomotion(_fighter.Velocity.X, 0, _moveset.Stats.RunSpeed, true), _fighter.Velocity.Y);
             }
         }
         else
@@ -212,7 +212,7 @@ public class FighterStateMachine
             if (actions.MoveX != 0)
             {
                 _fighter.Facing = actions.MoveX > 0 ? 1 : -1;
-                _fighter.Velocity = new Vector2(actions.MoveX * _moveset.Stats.RunSpeed, _fighter.Velocity.Y);
+                _fighter.Velocity = new Vector2(FighterPhysics.Locomotion(_fighter.Velocity.X, actions.MoveX, _moveset.Stats.RunSpeed, _fighter.IsGrounded), _fighter.Velocity.Y);
             }
             SetState(_fighter.Velocity.Y < 0 ? FighterState.Jump : FighterState.Fall);
         }
