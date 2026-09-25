@@ -67,8 +67,30 @@ public class FighterStateMachineMovementTests
     {
         var (fsm, _) = NewFsm();
         fsm.Update(Neutral() with { ShieldPressed = true });
-        for (var i = 0; i < 21; i++) fsm.Update(Neutral());
+        for (var i = 0; i < 31; i++) fsm.Update(Neutral());
         Assert.Equal(FighterState.Idle, fsm.CurrentState);
+    }
+
+    [Fact] public void SpotDodge_RecoveryLagIsVulnerable()
+    {
+        var (fsm, f) = NewFsm();
+        fsm.Update(Neutral() with { ShieldPressed = true, MoveY = 1 });
+        foreach (LimbGroup g in Enum.GetValues<LimbGroup>())
+            Assert.Equal(HurtboxType.Intangible, f.HurtboxOverrides[g]);
+        for (var i = 0; i < 20; i++) fsm.Update(Neutral()); // frame 20: past intangibility
+        Assert.Equal(FighterState.SpotDodge, fsm.CurrentState); // still can't act…
+        foreach (LimbGroup g in Enum.GetValues<LimbGroup>())   // …but vulnerable again
+            Assert.True(!f.HurtboxOverrides.TryGetValue(g, out var t) || t is null or HurtboxType.Vulnerable);
+    }
+
+    [Fact] public void AirDodge_DecaysMomentum()
+    {
+        var (fsm, f) = NewFsm(false);
+        fsm.Update(Neutral() with { ShieldPressed = true, MoveX = 1, MoveY = -1 });
+        Assert.Equal(220, f.Velocity.X, 0.01f);
+        for (var i = 0; i < 5; i++) fsm.Update(Neutral());
+        Assert.True(f.Velocity.X < 150, $"expected decayed velocity, got {f.Velocity.X}"); // 220 * 0.9^5 ≈ 130
+        Assert.True(f.Velocity.X > 0);
     }
 
     [Fact] public void ShieldTapInAir_DirectionalAirDodge()

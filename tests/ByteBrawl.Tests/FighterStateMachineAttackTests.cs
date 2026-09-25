@@ -133,6 +133,8 @@ public class FighterStateMachineAttackTests
         foreach (LimbGroup g in Enum.GetValues<LimbGroup>())
             Assert.Equal(HurtboxType.Intangible, f.HurtboxOverrides[g]);
         for (var i = 0; i < 25; i++) fsm.Update(Neutral());
+        Assert.Equal(FighterState.SpotDodge, fsm.CurrentState); // recovery lag still in dodge
+        for (var i = 0; i < 6; i++) fsm.Update(Neutral());
         Assert.Equal(FighterState.Idle, fsm.CurrentState);
         foreach (LimbGroup g in Enum.GetValues<LimbGroup>())
             Assert.True(!f.HurtboxOverrides.TryGetValue(g, out var t) || t is null or HurtboxType.Vulnerable);

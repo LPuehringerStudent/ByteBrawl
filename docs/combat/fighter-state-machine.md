@@ -41,10 +41,13 @@ A fighter is two layers:
   `ShieldHealth` (0.1/frame). At 0 the shield just drops today (shield-break
   stun is backlog, issue #4).
 - `SpotDodge` — shield **+ down** tapped on the ground (neutral shield tap
-  raises the shield instead). 20 frames; keeping shield held past frame 5
-  converts into `Shield`. All limb groups go `Intangible`.
-- `AirDodge` — shield tapped in the air; directional (velocity = stick × 220),
-  or a spot dodge **in place** (zero velocity) when the stick is neutral.
+  raises the shield instead). 30 frames total: intangible for the first 18,
+  then ~12 frames of vulnerable recovery lag where you still can't act.
+  Keeping shield held past frame 5 converts into `Shield`. While intangible,
+  all limb groups are `Intangible`.
+- `AirDodge` — shield tapped in the air; a burst of velocity (stick × 220)
+  that **decays** at 0.9×/frame — including straight up when the stick is
+  neutral (a spot dodge in place: intangibility with no drift).
 - `HeavyAttack` (air, up) — the recovery: air + heavy + holding up fires the
   moveset's `UpHeavy` slot once per airtime with a vertical boost (`RecoveryConfig`);
   other attacks are locked until you land unless the attack opts out

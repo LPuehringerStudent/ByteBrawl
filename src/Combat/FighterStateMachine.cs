@@ -6,10 +6,12 @@ public class FighterStateMachine
 {
     public const int DefaultAttackDuration = 20;
     public const int AttackRecoveryFrames = 10;
-    public const int SpotDodgeFrames = 20;
+    public const int SpotDodgeFrames = 30;           // total state length…
+    public const int SpotDodgeInvincibleFrames = 18; // …intangible only this long; the rest is recovery lag
     public const int SpotDodgeTapThreshold = 5;
     public const int AirDodgeFrames = 20;
     public const float AirDodgeSpeed = 220f;
+    public const float AirDodgeDrag = 0.9f; // per-frame momentum decay: a dodge is a burst, not a throw
 
     public const float ChargeAirDrag = 0.99f;
     public const float ChargeGroundDrag = 0.8f;
@@ -75,6 +77,8 @@ public class FighterStateMachine
         {
             _stateFrames++;
             _fighter.Velocity = new Vector2(0, _fighter.Velocity.Y);
+            if (_stateFrames >= SpotDodgeInvincibleFrames && _intangibleActive)
+                SetIntangible(false); // recovery lag: vulnerable but still can't act
             if (_stateFrames >= SpotDodgeTapThreshold && actions.ShieldHeld)
             {
                 _fighter.InvincibleFrames = 0;
@@ -94,6 +98,8 @@ public class FighterStateMachine
         if (_state == FighterState.AirDodge)
         {
             _stateFrames++;
+            _fighter.Velocity = new Vector2(
+                _fighter.Velocity.X * AirDodgeDrag, _fighter.Velocity.Y * AirDodgeDrag);
             if (_stateFrames >= AirDodgeFrames)
             {
                 if (_intangibleActive) SetIntangible(false);
@@ -318,7 +324,7 @@ public class FighterStateMachine
         }
         if (newState == FighterState.SpotDodge)
         {
-            _fighter.EnterInvincibility(SpotDodgeFrames);
+            _fighter.EnterInvincibility(SpotDodgeInvincibleFrames);
             SetIntangible(true);
         }
         if (newState == FighterState.AirDodge) SetIntangible(true);

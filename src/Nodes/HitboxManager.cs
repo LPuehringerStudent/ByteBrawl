@@ -88,6 +88,10 @@ public partial class HitboxManager : Node, IHitboxManager
         foreach (var child in GetChildren())
         {
             if (child is not Hitbox hb) continue;
+            // Follow the attacker: fast-moving attacks (recovery) would leave
+            // their spawn position behind within a frame or two.
+            hb.Position = hb.Attacker.Position
+                + new Vector2(hb.Spec.OffsetX * hb.Attacker.Facing, hb.Spec.OffsetY);
             hb.FramesRemaining--;
             if (hb.FramesRemaining <= 0) hb.QueueFree();
         }
