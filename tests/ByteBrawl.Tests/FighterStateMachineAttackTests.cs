@@ -225,12 +225,25 @@ public class FighterStateMachineAttackTests
         Assert.Equal(2, hb.Spawns.Count);
     }
 
-    [Fact] public void GroundedHeavyWithUp_StillFiresNeutralHeavy()
+    [Fact] public void GroundedUpHeavy_Charges()
     {
-        var (fsm, _, hb) = NewFsm(); // ByteMoveset: grounded heavy is the chargeable neutral
+        var (fsm, _, hb) = NewFsm(); // ByteMoveset: grounded up-heavy is chargeable
         fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1, AttackHeavyHeld = true });
         Assert.Equal(FighterState.Charging, fsm.CurrentState);
         Assert.Empty(hb.Spawns);
+    }
+
+    [Fact] public void GroundedUpHeavy_ChargedRelease_FiresScaledStages()
+    {
+        var (fsm, _, hb) = NewFsm();
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1, AttackHeavyHeld = true });
+        for (var i = 0; i < 35; i++) fsm.Update(Neutral() with { AttackHeavyHeld = true });
+        fsm.Update(Neutral() with { AttackHeavyHeld = false }); // release past min charge
+        Assert.Equal(FighterState.HeavyAttack, fsm.CurrentState);
+        for (var i = 0; i < 3; i++) fsm.Update(Neutral()); // stage 1 spawns at frame 2
+        Assert.NotEmpty(hb.Spawns);
+        Assert.Equal("recovery-1", hb.Spawns[0].Attack.Id);
+        Assert.True(hb.Spawns[0].Attack.BaseDamage > 8); // stages scale with charge
     }
 
     [Fact] public void Lockout_BlocksFollowUpAttacksInAir()

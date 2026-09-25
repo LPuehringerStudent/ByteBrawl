@@ -163,10 +163,16 @@ public class FighterStateMachine
         else if (actions.AttackLight && _attackCooldown == 0) { StartAttack(FighterState.LightAttack, _moveset.Get(AttackSlot.NeutralLight)); return; }
         else if (actions.AttackHeavy && _attackCooldown == 0)
         {
-            // Air + up: recovery. Consumes the input even when spent (Smash-style).
-            if (!_fighter.IsGrounded && actions.MoveY < 0)
+            // Heavy + up: the up-heavy move. On the ground it charges like any
+            // heavy (StartAttack gates charging to grounded); in the air it's
+            // the once-per-airtime recovery with a vertical boost, unchargeable.
+            if (actions.MoveY < 0)
             {
-                if (!_recoveryUsed)
+                if (_fighter.IsGrounded)
+                {
+                    StartAttack(FighterState.HeavyAttack, _moveset.Get(AttackSlot.UpHeavy));
+                }
+                else if (!_recoveryUsed)
                 {
                     var upHeavy = _moveset.Get(AttackSlot.UpHeavy);
                     StartAttack(FighterState.HeavyAttack, upHeavy);
@@ -177,7 +183,7 @@ public class FighterStateMachine
                         _attacksLocked = !rec.CanActAfter;
                     }
                 }
-                return;
+                return; // input consumed either way (Smash-style)
             }
             StartAttack(FighterState.HeavyAttack, _moveset.Get(AttackSlot.NeutralHeavy));
             return;
@@ -262,16 +268,32 @@ public class FighterStateMachine
     {
         if (_chargeAttack?.Charge is not { } charge) return;
         var frames = Math.Clamp(chargeFrames, 0, charge.MaxChargeFrames);
+        var damageBonus = frames * charge.DamageGrowth;
+        var knockbackBonus = frames * charge.KnockbackGrowth;
         var charged = new AttackData
         {
             Id = $"{_chargeAttack.Id}-charged",
-            BaseDamage = _chargeAttack.BaseDamage + frames * charge.DamageGrowth,
-            BaseKnockback = _chargeAttack.BaseKnockback + frames * charge.KnockbackGrowth,
+            BaseDamage = _chargeAttack.BaseDamage + damageBonus,
+            BaseKnockback = _chargeAttack.BaseKnockback + knockbackBonus,
             Scaling = _chargeAttack.Scaling,
             Direction = _chargeAttack.Direction,
             HitstunFrames = _chargeAttack.HitstunFrames,
             ActiveFrames = _chargeAttack.ActiveFrames,
             Hitboxes = _chargeAttack.Hitboxes,
+            // Staged attacks (up-heavy) keep their stages, scaled by the charge.
+            Stages = _chargeAttack.Stages.Select(s => new AttackStage
+            {
+                Id = s.Id,
+                SpawnFrame = s.SpawnFrame,
+                BaseDamage = s.BaseDamage + damageBonus,
+                BaseKnockback = s.BaseKnockback + knockbackBonus,
+                Scaling = s.Scaling,
+                Direction = s.Direction,
+                HitstunFrames = s.HitstunFrames,
+                ActiveFrames = s.ActiveFrames,
+                Hitboxes = s.Hitboxes,
+                Armor = s.Armor,
+            }).ToList(),
             Armor = _chargeAttack.Armor,
             Recovery = _chargeAttack.Recovery,
         };
@@ -284,7 +306,9 @@ public class FighterStateMachine
     {
         _fighter.DeactivateShield();
 
-        if (attack.Charge is { } charge && !attack.Id.EndsWith("-charged"))
+        // Charging is grounded-only: the same chargeable attack fired in the air
+        // (e.g. the recovery) goes off immediately, uncharged.
+        if (attack.Charge is { } charge && _fighter.IsGrounded && !attack.Id.EndsWith("-charged"))
         {
             _chargeAttack = attack;
             _chargeFiredState = state;

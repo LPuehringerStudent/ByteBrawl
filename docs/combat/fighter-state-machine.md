@@ -33,10 +33,14 @@ A fighter is two layers:
   `StartAttack`, which builds the stage sequence, sets the cooldown, and spawns
   hitboxes (flat attacks immediately, staged attacks via `TickAttack`).
 - `Charging` — entered instead of an attack when the `AttackData` has a
-  `ChargeConfig`. Applies heavy air/ground drag (charging fighters fall slowly
-  and lose horizontal momentum). Releases into the attack when the button is let
-  go past `MinChargeFrames`, or auto-fires after `MaxChargeFrames + MaxHoldFrames`.
-  `SetChargingFull` drives the blink-when-full placeholder effect.
+  `ChargeConfig` **and the fighter is grounded** (charging in the air is not a
+  thing; a chargeable attack fired airborne, like the recovery, goes off
+  immediately, uncharged). Applies heavy air/ground drag (charging fighters
+  fall slowly and lose horizontal momentum). Releases into the attack when the
+  button is let go past `MinChargeFrames`, or auto-fires after
+  `MaxChargeFrames + MaxHoldFrames`. `SetChargingFull` drives the
+  blink-when-full placeholder effect. Staged attacks keep their stages on
+  release, with damage/knockback scaled by the charge.
 - `Shield` — shield button on the ground with no direction held. Drains
   `ShieldHealth` (0.1/frame). At 0 the shield just drops today (shield-break
   stun is backlog, issue #4).

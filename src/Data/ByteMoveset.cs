@@ -57,6 +57,11 @@ public static class ByteMoveset
         {
             Id = "sword-upheavy-recovery",
             Recovery = new RecoveryConfig { VerticalBoost = 380 },
+            Charge = new ChargeConfig
+            {
+                MinChargeFrames = 30, MaxChargeFrames = 180, MaxHoldFrames = 180,
+                DamageGrowth = 0.2f, KnockbackGrowth = 1.0f,
+            },
             Stages =
             {
                 new AttackStage { Id = "recovery-1", BaseDamage = 8, BaseKnockback = 200, Scaling = 1.2f,

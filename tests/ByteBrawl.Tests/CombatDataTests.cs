@@ -52,6 +52,7 @@ public class CombatDataTests
     {
         var upHeavy = ByteMoveset.Create().Get(AttackSlot.UpHeavy);
         Assert.NotNull(upHeavy.Recovery);
+        Assert.NotNull(upHeavy.Charge); // grounded up-heavy charges; the air recovery doesn't
         Assert.Equal(380, upHeavy.Recovery!.VerticalBoost, 0.01f);
         Assert.False(upHeavy.Recovery.CanActAfter);
         Assert.Equal(4, upHeavy.Stages.Count);
