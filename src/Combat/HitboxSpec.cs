@@ -1,3 +1,5 @@
+using Godot;
+
 namespace ByteBrawl.Combat;
 
 // One circular hitbox of an attack. Several specs per attack/stage give
@@ -10,4 +12,8 @@ public class HitboxSpec
     public float Radius = 6f;
     public float? DamageOverride;
     public float? KnockbackOverride;
+    public HitboxType Type = HitboxType.Damage;
+    public Vector2 Push = Vector2.Zero;      // Wind: applied to victim velocity, no damage
+    public string SearchId = "";             // Search: detection-only callback key
+    public GrabData? Grab;                   // Grab: throw data (mechanics unbuilt)
 }

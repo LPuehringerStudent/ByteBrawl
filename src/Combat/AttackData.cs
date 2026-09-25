@@ -14,4 +14,5 @@ public class AttackData
     public ChargeConfig? Charge;
     public List<AttackStage> Stages = new();
     public List<HitboxSpec> Hitboxes = new();
+    public List<ArmorSpec> Armor = new();
 }
