@@ -153,8 +153,9 @@ public class FighterStateMachine
             }
         }
 
-        if (actions.AttackLight && _attackCooldown == 0) { StartAttack(FighterState.LightAttack, _moveset.Get(AttackSlot.NeutralLight)); return; }
-        if (actions.AttackHeavy && _attackCooldown == 0)
+        if (_attacksLocked) { /* recovery lockout: no attacks until grounded */ }
+        else if (actions.AttackLight && _attackCooldown == 0) { StartAttack(FighterState.LightAttack, _moveset.Get(AttackSlot.NeutralLight)); return; }
+        else if (actions.AttackHeavy && _attackCooldown == 0)
         {
             // Air + up: recovery. Consumes the input even when spent (Smash-style).
             if (!_fighter.IsGrounded && actions.MoveY < 0)
@@ -175,7 +176,7 @@ public class FighterStateMachine
             StartAttack(FighterState.HeavyAttack, _moveset.Get(AttackSlot.NeutralHeavy));
             return;
         }
-        if (actions.AttackSpecial && _attackCooldown == 0) { StartAttack(FighterState.Special, _moveset.Get(AttackSlot.NeutralSpecial)); return; }
+        else if (actions.AttackSpecial && _attackCooldown == 0) { StartAttack(FighterState.Special, _moveset.Get(AttackSlot.NeutralSpecial)); return; }
 
         if (_fighter.IsGrounded)
         {

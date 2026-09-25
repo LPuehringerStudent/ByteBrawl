@@ -165,6 +165,12 @@ public class FighterStateMachineAttackTests
             Direction = new Vector2(1, 0), HitstunFrames = 10, ActiveFrames = 4,
             Hitboxes = { new HitboxSpec { OffsetX = 0, Radius = 8 } },
         };
+        moveset.Attacks[AttackSlot.NeutralLight] = new AttackData
+        {
+            Id = "neutral-light", BaseDamage = 3, BaseKnockback = 60, Scaling = 0.5f,
+            Direction = new Vector2(1, 0), HitstunFrames = 8, ActiveFrames = 3,
+            Hitboxes = { new HitboxSpec { OffsetX = 0, Radius = 6 } },
+        };
         var f = new FakeFighter { Grounded = false };
         var hb = new FakeHitboxManager();
         return (new FighterStateMachine(f, hb, moveset), f, hb);
@@ -223,5 +229,47 @@ public class FighterStateMachineAttackTests
         fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1, AttackHeavyHeld = true });
         Assert.Equal(FighterState.Charging, fsm.CurrentState);
         Assert.Empty(hb.Spawns);
+    }
+
+    [Fact] public void Lockout_BlocksFollowUpAttacksInAir()
+    {
+        var (fsm, f, hb) = NewRecoveryFsm();
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1 }); // default: CanActAfter = false
+        for (var i = 0; i < 25; i++) // FakeFighter has no gravity: simulate falling so post-attack state is Fall
+        {
+            f.Velocity = new Vector2(f.Velocity.X, 100);
+            fsm.Update(Neutral()); // attack ends airborne
+        }
+        Assert.Equal(FighterState.Fall, fsm.CurrentState);
+        fsm.Update(Neutral() with { AttackLight = true });
+        Assert.Equal(FighterState.Fall, fsm.CurrentState); // locked
+    }
+
+    [Fact] public void Lockout_ClearsOnLanding()
+    {
+        var (fsm, f, hb) = NewRecoveryFsm();
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1 });
+        for (var i = 0; i < 25; i++)
+        {
+            f.Velocity = new Vector2(f.Velocity.X, 100);
+            fsm.Update(Neutral());
+        }
+        f.Grounded = true;
+        fsm.Update(Neutral()); // land: lockout clears
+        fsm.Update(Neutral() with { AttackLight = true });
+        Assert.Equal(FighterState.LightAttack, fsm.CurrentState);
+    }
+
+    [Fact] public void CanActAfter_SkipsLockout()
+    {
+        var (fsm, f, hb) = NewRecoveryFsm(canActAfter: true);
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1 });
+        for (var i = 0; i < 25; i++)
+        {
+            f.Velocity = new Vector2(f.Velocity.X, 100);
+            fsm.Update(Neutral());
+        }
+        fsm.Update(Neutral() with { AttackLight = true });
+        Assert.Equal(FighterState.LightAttack, fsm.CurrentState); // combo-finisher: free follow-up
     }
 }
