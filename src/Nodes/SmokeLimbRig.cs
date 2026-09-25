@@ -1,3 +1,4 @@
+using ByteBrawl.Combat;
 using Godot;
 
 namespace ByteBrawl.Nodes;
@@ -14,7 +15,11 @@ public partial class SmokeLimbRig : Node2D
                  && rig.Find("NearThigh") != null
                  && rig.Find("FarFoot") != null
                  && CountLimbs(rig) == LimbRig.PartCount
-                 && rig.Hurtboxes.Count == LimbRig.HurtboxCount;
+                 && rig.Hurtboxes.Count == LimbRig.HurtboxCount
+                 && rig.Hurtboxes.Count(h => h.Group == LimbGroup.Head) == 1
+                 && rig.Hurtboxes.Count(h => h.Group == LimbGroup.Torso) == 2
+                 && rig.Hurtboxes.Count(h => h.Group == LimbGroup.Arm) == 6
+                 && rig.Hurtboxes.Count(h => h.Group == LimbGroup.Leg) == 6;
         GD.Print(ok ? "SMOKE PASS" : "SMOKE FAIL");
         GetTree().Quit(ok ? 0 : 1);
     }

@@ -28,6 +28,9 @@ public class FakeFighter : IFighter
     public void LoseStock() { Stocks -= 1; Damage = 0; }
     public void Respawn(Vector2 position, int frames) { Position = position; Damage = 0; HitstunFrames = 0; EnterInvincibility(frames); }
     public virtual void SetChargingFull(bool value) { }
+    public readonly Dictionary<LimbGroup, HurtboxType?> HurtboxOverrides = new();
+    public void SetHurtboxOverride(LimbGroup group, HurtboxType? type, float armorBreakKb = float.MaxValue)
+        => HurtboxOverrides[group] = type;
 }
 
 public class FakeHitboxManager : IHitboxManager

@@ -70,4 +70,13 @@ public partial class Fighter : CharacterBody2D, IFighter
         EnterInvincibility(invincibilityFrames);
     }
     public void SetChargingFull(bool value) => _chargingFull = value;
+    public void SetHurtboxOverride(LimbGroup group, HurtboxType? type, float armorBreakKb = float.MaxValue)
+    {
+        foreach (var hurtbox in _rig.Hurtboxes)
+        {
+            if (hurtbox.Group != group) continue;
+            hurtbox.CurrentType = type ?? HurtboxType.Vulnerable;
+            hurtbox.ArmorBreakKb = type == HurtboxType.SuperArmor ? armorBreakKb : float.MaxValue;
+        }
+    }
 }

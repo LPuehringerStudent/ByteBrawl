@@ -25,4 +25,8 @@ public interface IFighter
     void LoseStock();
     void Respawn(Vector2 position, int invincibilityFrames);
     void SetChargingFull(bool value);
+    // Per-limb hurtbox state. null resets the group to Vulnerable. The FSM
+    // drives this (dodge intangibility, attack-stage armor); Fighter maps
+    // groups onto its rig's Hurtbox nodes.
+    void SetHurtboxOverride(LimbGroup group, HurtboxType? type, float armorBreakKb = float.MaxValue);
 }

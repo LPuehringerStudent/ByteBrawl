@@ -1,3 +1,4 @@
+using ByteBrawl.Combat;
 using Godot;
 
 namespace ByteBrawl.Nodes;
@@ -89,6 +90,14 @@ public partial class LimbRig : Node2D
         return thigh;
     }
 
+    // Part-name -> group mapping; see spec. Backpack has no hurtbox.
+    // "Forearm" must match too, hence case-insensitive "arm".
+    public static LimbGroup GroupFor(string partName) =>
+        partName.Contains("Head") ? LimbGroup.Head
+        : partName.Contains("Arm", StringComparison.OrdinalIgnoreCase) || partName.Contains("Hand") ? LimbGroup.Arm
+        : partName.Contains("Thigh") || partName.Contains("Shin") || partName.Contains("Foot") ? LimbGroup.Leg
+        : LimbGroup.Torso; // Torso, Pelvis
+
     // Capsule from the part's own geometry: centered on the sprite, radius =
     // half the limb thickness, height along the long axis with slight joint overlap.
     private static void AttachHurtbox(LimbRig rig, Limb limb)
@@ -99,7 +108,7 @@ public partial class LimbRig : Node2D
         var length = alongX ? size.X : size.Y;
         var radius = (alongX ? size.Y : size.X) / 2f;
         var height = length + radius * 0.6f;
-        var area = new Hurtbox { Radius = radius, Height = height, Position = center };
+        var area = new Hurtbox { Radius = radius, Height = height, Position = center, Group = GroupFor(limb.Name) };
         if (alongX) area.RotationDegrees = 90f;
         area.AddChild(new CollisionShape2D { Shape = new CapsuleShape2D { Radius = radius, Height = height } });
         limb.AddChild(area);
