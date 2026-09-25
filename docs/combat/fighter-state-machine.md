@@ -26,7 +26,9 @@ A fighter is two layers:
 `FighterState` values and the important transitions (see `Update`/`SetState`):
 
 - `Idle` / `Run` — grounded movement; facing follows input.
-- `Jump` / `Fall` — airborne; `Jump` while rising, `Fall` otherwise.
+- `Jump` / `Fall` — airborne; `Jump` while rising, `Fall` otherwise. `Jump`
+  while airborne consumes the fighter's air jumps (`FighterStats.AirJumps`, Byte:
+  1), reset on landing; hitstun does not refresh it.
 - `LightAttack` / `HeavyAttack` / `Special` — one-shot attack states. Entered via
   `StartAttack`, which builds the stage sequence, sets the cooldown, and spawns
   hitboxes (flat attacks immediately, staged attacks via `TickAttack`).
@@ -43,6 +45,10 @@ A fighter is two layers:
   converts into `Shield`. All limb groups go `Intangible`.
 - `AirDodge` — shield tapped in the air; directional (velocity = stick × 220),
   or a spot dodge **in place** (zero velocity) when the stick is neutral.
+- `HeavyAttack` (air, up) — the recovery: air + heavy + holding up fires the
+  moveset's `UpHeavy` slot once per airtime with a vertical boost (`RecoveryConfig`);
+  other attacks are locked until you land unless the attack opts out
+  (`CanActAfter`). See `docs/superpowers/specs/2026-09-25-recovery-system-design.md`.
 - `Hitstun` — not entered directly; any frame `HitstunFrames > 0` forces this
   state (checked first in `Update`) and clears combat overrides (armor windows,
   intangibility) so interrupted attacks can't leave stale hurtbox state behind.
