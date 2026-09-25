@@ -3,11 +3,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>ByteBrawl</RootNamespace>
+    <RootNamespace>UnnamedFightingGame</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="tests/**/*.cs" />
-    <Compile Remove="soldier/**/*.cs" />
+    <Compile Include="../src/Combat/FighterPhysics.cs" Link="scripts/Physics/FighterPhysics.cs" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,12 @@
+{
+  "baseline": "d6bbbe3",
+  "protectedGameAssetFiles": 49,
+  "byteIdenticalPngFiles": 23,
+  "sharedPhysicsSha256": "1205f146fe876b698a2aa7dd66940f875dc0f0b79bbe79c087b4d63c34be6595",
+  "limbPoses": 57,
+  "hurtboxesPerPose": 15,
+  "attackRadius": 9,
+  "terrainRadius": 12,
+  "terrainHeight": 108,
+  "result": "PNG bytes unchanged; previous metadata/import settings unchanged except line endings; shared physics source identical."
+}

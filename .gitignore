@@ -12,3 +12,7 @@ obj/
 .vscode/
 .idea/
 .superpowers/
+
+# Separate Soldier project keeps exact pixel import settings.
+!soldier/assets/**/*.import
+artifacts/

@@ -148,3 +148,7 @@ per the 16 part names in `LimbRig.CreatePlaceholder`** (`Pelvis`, `Torso`,
 `Backpack`, `Head`, `Near/Far UpperArm`, `Near/Far Forearm`, `Near/Far Hand`,
 `Near/Far Thigh`, `Near/Far Shin`, `Near/Far Foot`), origin at the joint pivot
 (top of an arm segment, hip for legs), extending downward along +Y.
+
+## Soldier integration branch
+
+The complete pixel-art Soldier game is available as a separate Godot project in `soldier/`, sharing ByteBrawl physics and adding animation-following limb hurtboxes. See [setup, controls and verification](docs/soldier-integration.md).

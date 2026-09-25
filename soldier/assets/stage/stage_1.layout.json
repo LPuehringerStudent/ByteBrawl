@@ -1,0 +1,29 @@
+{
+  "reference": "reference_pics/stage_1.jpg",
+  "crop": {
+    "x": 0,
+    "y": 0,
+    "width": 600,
+    "height": 300
+  },
+  "position": {
+    "x": 180,
+    "y": 186
+  },
+  "surface": [
+    [
+      34,
+      148
+    ],
+    [
+      582,
+      148
+    ]
+  ],
+  "collisionDepth": 14,
+  "spawn": {
+    "x": 480,
+    "y": 334
+  },
+  "notes": "Display-pixel coordinates: flat invisible surface at reference row 294 across the widest deck section. Stage artwork is 600x300 logical pixels exported at 1x to match the Soldier."
+}
