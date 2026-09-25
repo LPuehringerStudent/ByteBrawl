@@ -21,10 +21,18 @@ public class MatchRules
         _player2 = player2;
     }
 
-    public void ApplyHit(IFighter attacker, IFighter defender, AttackData attack)
+    public event Action<IFighter>? HitBlocked; // invincible contact: flash only, no effect
+
+    public void ApplyHit(IFighter attacker, IFighter defender, AttackData attack,
+        HurtboxType hurtboxType = HurtboxType.Vulnerable, float armorBreakKb = float.MaxValue)
     {
         if (State != MatchState.Active) return;
-        if (defender.InvincibleFrames > 0) return;
+        if (hurtboxType == HurtboxType.Intangible) return; // no contact at all
+        if (defender.InvincibleFrames > 0 || hurtboxType == HurtboxType.Invincible)
+        {
+            HitBlocked?.Invoke(defender);
+            return;
+        }
 
         attacker.Meter.AddFromDealt(attack.BaseDamage);
         defender.Meter.AddFromTaken(attack.BaseDamage);
@@ -38,13 +46,26 @@ public class MatchRules
             return;
         }
 
+        // Armor: damage applies, no knockback/hitstun/interrupt. Super armor
+        // breaks into a full hit when the attack's base knockback clears the
+        // threshold; hyper armor never breaks.
+        var armored = hurtboxType == HurtboxType.HyperArmor
+            || (hurtboxType == HurtboxType.SuperArmor && attack.BaseKnockback <= armorBreakKb);
         var preDamage = defender.Damage;
         defender.TakeDamage(attack.BaseDamage);
+        if (armored) return;
         var knockback = attack.BaseKnockback + preDamage * attack.Scaling;
         defender.ApplyKnockback(new Vector2(
             attack.Direction.X * attacker.Facing * knockback,
             attack.Direction.Y * knockback));
         defender.EnterHitstun(attack.HitstunFrames);
+    }
+
+    // Wind hitboxes push without damage, hitstun, or meter.
+    public void ApplyWind(IFighter defender, HitboxSpec spec, int facing)
+    {
+        if (State != MatchState.Active) return;
+        defender.Velocity += new Vector2(spec.Push.X * facing, spec.Push.Y);
     }
 
     public void CheckRingOut(IFighter player, Func<float, float, bool> isOutOfBounds, Vector2 spawn)
