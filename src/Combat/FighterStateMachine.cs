@@ -110,7 +110,15 @@ public class FighterStateMachine
 
         if (actions.ShieldPressed)
         {
-            if (_fighter.IsGrounded) { SetState(FighterState.SpotDodge); return; }
+            if (_fighter.IsGrounded)
+            {
+                // Neutral shield on the ground; shield+down tap = spot dodge.
+                if (actions.MoveY > 0) { SetState(FighterState.SpotDodge); return; }
+                _fighter.ShieldActive = true;
+                SetState(FighterState.Shield);
+                return;
+            }
+            // Air: directional dodge, or a spot dodge in place when neutral.
             var dirY = actions.MoveY < 0 ? -1 : actions.MoveY > 0 ? 1 : 0;
             _fighter.Velocity = new Vector2(actions.MoveX * AirDodgeSpeed, dirY * AirDodgeSpeed);
             SetState(FighterState.AirDodge);

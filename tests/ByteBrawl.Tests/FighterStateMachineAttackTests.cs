@@ -129,7 +129,7 @@ public class FighterStateMachineAttackTests
     {
         var (fsm, f, _) = NewFsm();
         f.Grounded = true;
-        fsm.Update(Neutral() with { ShieldPressed = true });
+        fsm.Update(Neutral() with { ShieldPressed = true, MoveY = 1 }); // shield+down = spot dodge
         foreach (LimbGroup g in Enum.GetValues<LimbGroup>())
             Assert.Equal(HurtboxType.Intangible, f.HurtboxOverrides[g]);
         for (var i = 0; i < 25; i++) fsm.Update(Neutral());

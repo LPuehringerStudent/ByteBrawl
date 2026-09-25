@@ -35,12 +35,14 @@ A fighter is two layers:
   and lose horizontal momentum). Releases into the attack when the button is let
   go past `MinChargeFrames`, or auto-fires after `MaxChargeFrames + MaxHoldFrames`.
   `SetChargingFull` drives the blink-when-full placeholder effect.
-- `Shield` — hold shield on the ground. Drains `ShieldHealth` (0.1/frame). At 0
-  the shield just drops today (shield-break stun is backlog, issue #4).
-- `SpotDodge` — shield tapped on the ground. 20 frames; holding shield again
-  past frame 5 converts into `Shield` (that's the "tap vs hold" distinction).
-  All limb groups go `Intangible`.
-- `AirDodge` — shield tapped in the air; directional (velocity = stick × 220).
+- `Shield` — shield button on the ground with no direction held. Drains
+  `ShieldHealth` (0.1/frame). At 0 the shield just drops today (shield-break
+  stun is backlog, issue #4).
+- `SpotDodge` — shield **+ down** tapped on the ground (neutral shield tap
+  raises the shield instead). 20 frames; keeping shield held past frame 5
+  converts into `Shield`. All limb groups go `Intangible`.
+- `AirDodge` — shield tapped in the air; directional (velocity = stick × 220),
+  or a spot dodge **in place** (zero velocity) when the stick is neutral.
 - `Hitstun` — not entered directly; any frame `HitstunFrames > 0` forces this
   state (checked first in `Update`) and clears combat overrides (armor windows,
   intangibility) so interrupted attacks can't leave stale hurtbox state behind.
