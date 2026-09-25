@@ -99,13 +99,17 @@ public partial class LimbRig : Node2D
         : LimbGroup.Torso; // Torso, Pelvis
 
     // Circle placement for limb-anchored hitbox chains: same geometry rule as
-    // hurtboxes (center on the segment, radius = half the limb thickness),
-    // in limb-local space — the limb's own transform handles rotation.
+    // hurtboxes (center on the segment, radius from the limb thickness), in
+    // limb-local space — the limb's own transform handles rotation. Radius
+    // has a floor: the thin placeholder limbs would otherwise give circles
+    // too small to hit anything; real art scales the radius up naturally.
+    public const float MinChainRadius = 4f;
+
     public static (Vector2 Center, float Radius) ChainGeometry(Vector2 size, Vector2 pivot, float radiusScale)
     {
         var center = size / 2 - pivot;
         var alongX = size.X > size.Y;
-        var radius = (alongX ? size.Y : size.X) / 2f * radiusScale;
+        var radius = Math.Max(MinChainRadius, (alongX ? size.Y : size.X) / 2f * radiusScale);
         return (center, radius);
     }
 

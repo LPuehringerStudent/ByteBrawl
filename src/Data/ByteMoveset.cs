@@ -21,7 +21,7 @@ public static class ByteMoveset
             Armor = { new ArmorSpec { Group = LimbGroup.Arm, Type = HurtboxType.HyperArmor } },
             Charge = new ChargeConfig
             {
-                MinChargeFrames = 30, MaxChargeFrames = 180, MaxHoldFrames = 180,
+                MinChargeFrames = 8, MaxChargeFrames = 180, MaxHoldFrames = 180,
                 DamageGrowth = 0.2f, KnockbackGrowth = 1.0f,
             },
         };
@@ -59,7 +59,7 @@ public static class ByteMoveset
             Recovery = new RecoveryConfig { VerticalBoost = 380, GroundBoost = 180 },
             Charge = new ChargeConfig
             {
-                MinChargeFrames = 30, MaxChargeFrames = 180, MaxHoldFrames = 180,
+                MinChargeFrames = 8, MaxChargeFrames = 180, MaxHoldFrames = 180,
                 DamageGrowth = 0.2f, KnockbackGrowth = 1.0f,
             },
             Stages =
