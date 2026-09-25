@@ -5,7 +5,24 @@ namespace ByteBrawl.Nodes;
 
 public partial class HitboxManager : Node, IHitboxManager
 {
-    public MatchRules? Rules;
+    public event Action<Fighter, string>? SearchTriggered;
+
+    // Debug overlay: positions of recently blocked (invincible) contacts.
+    public readonly List<(Vector2 Pos, int Frames)> BlockedFlashes = new();
+
+    private MatchRules? _rules;
+    public MatchRules? Rules
+    {
+        get => _rules;
+        set
+        {
+            if (_rules != null) _rules.HitBlocked -= OnHitBlocked;
+            _rules = value;
+            if (_rules != null) _rules.HitBlocked += OnHitBlocked;
+        }
+    }
+
+    private void OnHitBlocked(IFighter defender) => BlockedFlashes.Add((defender.Position, 10));
 
     public void Spawn(IFighter attacker, AttackData attack, HitboxSpec spec)
     {
@@ -18,13 +35,34 @@ public partial class HitboxManager : Node, IHitboxManager
             Attack = EffectiveAttack(attack, spec),
         };
         hb.AddChild(shape);
-        hb.AreaEntered += area =>
+        // Grab boxes are specced but unbuilt: they exist for the debug overlay only.
+        if (spec.Type != HitboxType.Grab)
         {
-            if (hb.HasHit || area is not Hurtbox hurt || hurt.OwnerFighter is not { } defender) return;
-            if (defender == hb.Attacker) return;
-            Rules.ApplyHit(hb.Attacker, defender, hb.Attack);
-            hb.HasHit = true;
-        };
+            hb.AreaEntered += area =>
+            {
+                if (area is not Hurtbox hurt || hurt.OwnerFighter is not { } defender) return;
+                if (defender == hb.Attacker) return;
+                if (hurt.CurrentType == HurtboxType.Intangible) return;
+                switch (hb.Spec.Type)
+                {
+                    case HitboxType.Wind:
+                        Rules.ApplyWind(defender, hb.Spec, hb.Attacker.Facing);
+                        break;
+                    case HitboxType.Search:
+                        if (!hb.HasHit)
+                        {
+                            SearchTriggered?.Invoke(hb.Attacker, hb.Spec.SearchId);
+                            hb.HasHit = true;
+                        }
+                        break;
+                    default:
+                        if (hb.HasHit) break;
+                        Rules.ApplyHit(hb.Attacker, defender, hb.Attack, hurt.CurrentType, hurt.ArmorBreakKb);
+                        hb.HasHit = true;
+                        break;
+                }
+            };
+        }
         AddChild(hb);
     }
 
@@ -52,6 +90,12 @@ public partial class HitboxManager : Node, IHitboxManager
             if (child is not Hitbox hb) continue;
             hb.FramesRemaining--;
             if (hb.FramesRemaining <= 0) hb.QueueFree();
+        }
+        for (var i = BlockedFlashes.Count - 1; i >= 0; i--)
+        {
+            var flash = BlockedFlashes[i];
+            if (--flash.Frames <= 0) BlockedFlashes.RemoveAt(i);
+            else BlockedFlashes[i] = flash;
         }
     }
 }
