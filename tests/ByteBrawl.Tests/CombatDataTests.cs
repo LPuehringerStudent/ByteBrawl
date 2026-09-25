@@ -1,5 +1,6 @@
 using ByteBrawl.Combat;
 using ByteBrawl.Data;
+using Godot;
 using Xunit;
 
 namespace ByteBrawl.Tests;
@@ -44,5 +45,28 @@ public class CombatDataTests
         Assert.Equal(LimbGroup.Arm, armor.Group);
         Assert.Equal(HurtboxType.HyperArmor, armor.Type);
         Assert.Null(armor.BreakKbThreshold);
+    }
+
+    [Fact]
+    public void ByteUpHeavy_IsSjpStyleRecovery()
+    {
+        var upHeavy = ByteMoveset.Create().Get(AttackSlot.UpHeavy);
+        Assert.NotNull(upHeavy.Recovery);
+        Assert.Equal(380, upHeavy.Recovery!.VerticalBoost, 0.01f);
+        Assert.False(upHeavy.Recovery.CanActAfter);
+        Assert.Equal(4, upHeavy.Stages.Count);
+        // strong first hit, two carrying hits (no scaling), launcher last
+        Assert.True(upHeavy.Stages[0].BaseKnockback > upHeavy.Stages[1].BaseKnockback);
+        Assert.Equal(0, upHeavy.Stages[1].Scaling);
+        Assert.Equal(0, upHeavy.Stages[2].Scaling);
+        Assert.True(upHeavy.Stages[3].BaseKnockback > upHeavy.Stages[1].BaseKnockback);
+        // hyper armor on the arm while rising (stages 1-3)
+        for (var i = 0; i < 3; i++)
+        {
+            var armor = Assert.Single(upHeavy.Stages[i].Armor);
+            Assert.Equal(LimbGroup.Arm, armor.Group);
+            Assert.Equal(HurtboxType.HyperArmor, armor.Type);
+        }
+        Assert.Empty(upHeavy.Stages[3].Armor);
     }
 }
