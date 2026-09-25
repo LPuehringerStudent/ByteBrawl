@@ -35,14 +35,16 @@ public partial class CombatDebugDraw : Node2D
     {
         if (ShowHurtboxes)
         {
-            var fill = new Color(0.75f, 1f, 0.85f, 0.15f);
-            var outline = new Color(0.75f, 1f, 0.85f, 0.35f);
+            var blink = Time.GetTicksMsec() % 266 < 133;
             foreach (var f in new[] { P1, P2 })
             {
                 if (f == null) continue;
                 var scale = Mathf.Abs(f.Rig.Scale.X);
+                var fighterInvincible = f.InvincibleFrames > 0;
                 foreach (var hurtbox in f.Rig.Hurtboxes)
                 {
+                    var type = fighterInvincible ? HurtboxType.Invincible : hurtbox.CurrentType;
+                    var (fill, outline) = HurtboxStyle(type, blink);
                     // Capsule: thick line along the segment + cap circles, with outline.
                     var t = hurtbox.GlobalTransform;
                     var r = hurtbox.Radius * scale;
@@ -62,9 +64,45 @@ public partial class CombatDebugDraw : Node2D
         foreach (var child in Hitboxes.GetChildren())
         {
             if (child is not Hitbox hb) continue;
-            DrawCircle(hb.Position, hb.Spec.Radius, new Color(1, 0, 0, 0.4f));
-            var dir = hb.Attack.Direction * hb.Attacker.Facing * 20f;
-            DrawLine(hb.Position, hb.Position + dir, new Color(1, 1, 0), 1f);
+            DrawCircle(hb.Position, hb.Spec.Radius, HitboxFill(hb));
+            if (hb.Spec.Type == HitboxType.Damage)
+            {
+                var dir = hb.Attack.Direction * hb.Attacker.Facing * 20f;
+                DrawLine(hb.Position, hb.Position + dir, new Color(1, 1, 0), 1f);
+            }
         }
+        foreach (var (pos, frames) in Hitboxes.BlockedFlashes)
+        {
+            var alpha = frames / 20f;
+            DrawCircle(pos, 14f, new Color(1, 1, 1, alpha));
+            DrawArc(pos, 14f, 0, Mathf.Tau, 24, new Color(1, 1, 1, alpha * 2), 1.5f);
+        }
+    }
+
+    // Smash-convention colors per spec; near-transparent fill, brighter outline.
+    private static (Color Fill, Color Outline) HurtboxStyle(HurtboxType type, bool blink) => type switch
+    {
+        HurtboxType.Intangible => (new Color(0.4f, 0.6f, 1f, 0.10f), new Color(0.4f, 0.6f, 1f, 0.30f)),
+        HurtboxType.Invincible => blink
+            ? (new Color(1, 1, 1, 0.30f), new Color(1, 1, 1, 0.55f))
+            : (new Color(1, 1, 1, 0.06f), new Color(1, 1, 1, 0.15f)),
+        HurtboxType.SuperArmor => (new Color(1f, 0.6f, 0.1f, 0.18f), new Color(1f, 0.6f, 0.1f, 0.40f)),
+        HurtboxType.HyperArmor => (new Color(0.7f, 0.3f, 1f, 0.18f), new Color(0.7f, 0.3f, 1f, 0.40f)),
+        _ => (new Color(0.75f, 1f, 0.85f, 0.15f), new Color(0.75f, 1f, 0.85f, 0.35f)),
+    };
+
+    private static Color HitboxFill(Hitbox hb) => hb.Spec.Type switch
+    {
+        HitboxType.Wind => new Color(0.3f, 0.9f, 1f, 0.35f),
+        HitboxType.Grab => new Color(1f, 0.9f, 0.2f, 0.35f),
+        HitboxType.Search => new Color(0.6f, 0.6f, 0.6f, 0.30f),
+        _ => DamageFill(hb),
+    };
+
+    // Damage hitboxes fade from bright (early active frames) to dark.
+    private static Color DamageFill(Hitbox hb)
+    {
+        var age = 1f - hb.FramesRemaining / (float)Math.Max(1, hb.Attack.ActiveFrames);
+        return new Color(1, 0, 0, 0.55f - 0.3f * age);
     }
 }
