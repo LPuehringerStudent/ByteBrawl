@@ -51,7 +51,7 @@ public partial class Fighter : CharacterBody2D, IFighter
         MoveAndSlide();
         // mirror to face left/right; 0.65 fits the ~33px rig into the 20px-tall collision box
         _rig.Scale = new Vector2(Facing * 0.65f, 0.65f);
-        GetNode<PosePlayer>("PosePlayer").Play(Fsm.CurrentState, Fsm.StateFrames);
+        GetNode<PosePlayer>("PosePlayer").Play(Fsm.CurrentState, Fsm.StateFrames, Fsm.IsRecovering);
     }
 
     public void TakeDamage(float amount) => Damage += amount;

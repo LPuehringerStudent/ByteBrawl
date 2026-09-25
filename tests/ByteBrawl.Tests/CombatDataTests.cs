@@ -54,22 +54,25 @@ public class CombatDataTests
         Assert.NotNull(upHeavy.Recovery);
         Assert.Equal(380, upHeavy.Recovery!.VerticalBoost, 0.01f);
         Assert.Equal(180, upHeavy.Recovery.GroundBoost, 0.01f);
-        Assert.NotNull(upHeavy.Charge); // grounded up-heavy charges; the air recovery doesn't
-        Assert.Equal(380, upHeavy.Recovery!.VerticalBoost, 0.01f);
         Assert.False(upHeavy.Recovery.CanActAfter);
-        Assert.Equal(4, upHeavy.Stages.Count);
-        // strong first hit, two carrying hits (no scaling), launcher last
+        Assert.NotNull(upHeavy.Charge); // grounded up-heavy charges; the air recovery doesn't
+        Assert.Equal(3, upHeavy.Stages.Count);
+        // strong first hit, rehit carry stream (stun-only), launcher last
         Assert.True(upHeavy.Stages[0].BaseKnockback > upHeavy.Stages[1].BaseKnockback);
         Assert.Equal(0, upHeavy.Stages[1].Scaling);
-        Assert.Equal(0, upHeavy.Stages[2].Scaling);
-        Assert.True(upHeavy.Stages[3].BaseKnockback > upHeavy.Stages[1].BaseKnockback);
-        // hyper armor on the arm while rising (stages 1-3)
-        for (var i = 0; i < 3; i++)
+        Assert.True(upHeavy.Stages[2].BaseKnockback > upHeavy.Stages[1].BaseKnockback);
+        // carry stream: one chain box, active 10, rehits every 2 frames, stun-only
+        var carry = Assert.Single(upHeavy.Stages[1].Hitboxes);
+        Assert.True(carry.NoKnockback);
+        Assert.Equal(2, carry.RehitFrames);
+        Assert.Equal(10, upHeavy.Stages[1].ActiveFrames);
+        // hyper armor on the arm while rising (stages 1-2)
+        for (var i = 0; i < 2; i++)
         {
             var armor = Assert.Single(upHeavy.Stages[i].Armor);
             Assert.Equal(LimbGroup.Arm, armor.Group);
             Assert.Equal(HurtboxType.HyperArmor, armor.Type);
         }
-        Assert.Empty(upHeavy.Stages[3].Armor);
+        Assert.Empty(upHeavy.Stages[2].Armor);
     }
 }

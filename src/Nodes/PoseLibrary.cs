@@ -5,11 +5,19 @@ namespace ByteBrawl.Nodes;
 
 public static class PoseLibrary
 {
-    public static Pose For(FighterState state, int stateFrames)
+    public static Pose For(FighterState state, int stateFrames, bool recovering = false)
     {
         var p = new Pose();
         switch (state)
         {
+            case FighterState.HeavyAttack when recovering:
+                // Rising uppercut: arm straight up, body stretched (SJP-style).
+                p.Angles["NearUpperArm"] = -170f;
+                p.Angles["NearForearm"] = -10f;
+                p.Angles["FarUpperArm"] = -40f;
+                p.Angles["FarForearm"] = -20f;
+                p.Angles["Torso"] = -14f;
+                break;
             case FighterState.Run:
                 var swing = Mathf.Sin(stateFrames * 0.3f) * 40f;
                 p.Angles["NearThigh"] = swing;

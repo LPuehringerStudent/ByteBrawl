@@ -28,10 +28,13 @@ public class FighterStateMachine
 
     public FighterState CurrentState => _state;
     public int StateFrames => _stateFrames;
+    // True while an attack with a Recovery config is playing (drives the rising pose).
+    public bool IsRecovering => IsAttackState(_state) && _currentAttack?.Recovery != null;
 
     private FighterState _state = FighterState.Idle;
     private int _stateFrames;
     private int _attackCooldown;
+    private AttackData? _currentAttack;
     private int _airJumpsUsed;
     private bool _recoveryUsed;
     private bool _attacksLocked;
@@ -235,7 +238,10 @@ public class FighterStateMachine
                 _hitboxes.Spawn(_fighter, stage, spec);
         }
         if (_stateFrames >= _attackTotalFrames)
+        {
+            _currentAttack = null;
             SetState(_fighter.IsGrounded ? FighterState.Idle : FighterState.Fall);
+        }
     }
 
     private void TickCharge(ActionFrame actions)
@@ -309,6 +315,7 @@ public class FighterStateMachine
     private void StartAttack(FighterState state, AttackData attack)
     {
         _fighter.DeactivateShield();
+        _currentAttack = attack;
 
         // Charging is grounded-only: the same chargeable attack fired in the air
         // (e.g. the recovery) goes off immediately, uncharged.
@@ -384,6 +391,7 @@ public class FighterStateMachine
         foreach (var g in _armoredGroups) _fighter.SetHurtboxOverride(g, null);
         _armoredGroups.Clear();
         _armorUntilFrame = -1;
+        _currentAttack = null;
     }
 
     private static bool IsAttackState(FighterState s) =>

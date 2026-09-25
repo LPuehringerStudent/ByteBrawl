@@ -64,21 +64,20 @@ public static class ByteMoveset
             },
             Stages =
             {
+                // Framedata-shaped (Mario SJP): strong hit 3-6, rehit-2 carry
+                // stream 7-16, launcher 17-18.
                 new AttackStage { Id = "recovery-1", BaseDamage = 8, BaseKnockback = 200, Scaling = 1.2f,
-                    Direction = new Vector2(0.3f, -1), HitstunFrames = 18, ActiveFrames = 3, SpawnFrame = 2,
+                    Direction = new Vector2(0.3f, -1), HitstunFrames = 18, ActiveFrames = 4, SpawnFrame = 3,
                     Hitboxes = { new HitboxSpec { LimbChain = { "NearUpperArm", "NearForearm", "NearHand" }, RadiusScale = 1.2f } },
                     Armor = { new ArmorSpec { Group = LimbGroup.Arm, Type = HurtboxType.HyperArmor } } },
                 new AttackStage { Id = "recovery-2", BaseDamage = 2, BaseKnockback = 40, Scaling = 0,
-                    Direction = new Vector2(0, -1), HitstunFrames = 8, ActiveFrames = 3, SpawnFrame = 7,
-                    Hitboxes = { new HitboxSpec { LimbChain = { "NearUpperArm", "NearForearm", "NearHand" }, NoKnockback = true } },
+                    Direction = new Vector2(0, -1), HitstunFrames = 8, ActiveFrames = 10, SpawnFrame = 7,
+                    Hitboxes = { new HitboxSpec { LimbChain = { "NearUpperArm", "NearForearm", "NearHand" },
+                        NoKnockback = true, RehitFrames = 2 } },
                     Armor = { new ArmorSpec { Group = LimbGroup.Arm, Type = HurtboxType.HyperArmor } } },
-                new AttackStage { Id = "recovery-3", BaseDamage = 2, BaseKnockback = 40, Scaling = 0,
-                    Direction = new Vector2(0, -1), HitstunFrames = 8, ActiveFrames = 3, SpawnFrame = 12,
-                    Hitboxes = { new HitboxSpec { LimbChain = { "NearUpperArm", "NearForearm", "NearHand" }, NoKnockback = true } },
-                    Armor = { new ArmorSpec { Group = LimbGroup.Arm, Type = HurtboxType.HyperArmor } } },
-                new AttackStage { Id = "recovery-4", BaseDamage = 5, BaseKnockback = 180, Scaling = 1.0f,
-                    Direction = new Vector2(0.2f, -1), HitstunFrames = 16, ActiveFrames = 4, SpawnFrame = 17,
-                    Hitboxes = { new HitboxSpec { OffsetX = 5, OffsetY = -12, Radius = 8 } } },
+                new AttackStage { Id = "recovery-3", BaseDamage = 5, BaseKnockback = 180, Scaling = 1.0f,
+                    Direction = new Vector2(0.2f, -1), HitstunFrames = 16, ActiveFrames = 2, SpawnFrame = 17,
+                    Hitboxes = { new HitboxSpec { OffsetX = 0, OffsetY = -12, Radius = 8 } } },
             },
         };
 

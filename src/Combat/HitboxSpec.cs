@@ -17,6 +17,9 @@ public class HitboxSpec
     public string SearchId = "";             // Search: detection-only callback key
     public GrabData? Grab;                   // Grab: throw data (mechanics unbuilt)
     public bool NoKnockback;                 // Stun-only: damage + hitstun, zero knockback (multihit filler)
+    // Rehit: after hitting, the box may hit the same opponent again every N
+    // frames while active (Mario SJP "rehit rate of 2"). 0 = hit once.
+    public int RehitFrames;
     // Limb-anchored chain: when non-empty, one circle per named limb,
     // auto-derived from limb geometry and following the limb's pose per frame.
     // When empty, the fixed OffsetX/OffsetY circle is used instead.

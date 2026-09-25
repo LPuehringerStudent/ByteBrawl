@@ -123,12 +123,23 @@ Smash-convention colors, near-transparent fills, drawn at `ZIndex = 100` (above
 the fighters):
 
 - Hitboxes: **red** damage (bright on early active frames, fading darker), **cyan**
-  wind, **yellow** grab, **gray** search. Damage boxes also draw a yellow
-  knockback-direction line.
+  wind, **yellow** grab, **gray** search. Damage boxes also draw a thin white
+  knockback-direction line inside the circle (framedata style), sized to the
+  circle's real radius — chain circles draw their limb-derived radius, not the
+  spec default.
 - Hurtboxes: **pale green** vulnerable, **faint blue** intangible, **blinking
   white** invincible (also shown while `InvincibleFrames > 0`), **orange**
   super armor, **purple** hyper armor — the last one matches the Ultimate
   framedata convention (Little Mac's armored smash).
+
+## Rehit streams
+
+`HitboxSpec.RehitFrames` turns a box into a stream: after it hits, it may hit
+the **same opponent again** every N frames while still active (0 = hit once).
+The recovering fighter's carrying hit uses `RehitFrames = 2` with
+`ActiveFrames = 10` — five stun-only ticks over the ascent, matching the
+"rehit rate of 2" on the framedata reference. Each tick refreshes hitstun, so
+the victim is carried up and released into the launcher.
 
 ## Adding a new hitbox behavior
 

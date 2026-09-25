@@ -53,7 +53,7 @@ public partial class HitboxManager : Node, IHitboxManager
         var hb = new Hitbox
         {
             Attacker = attacker, Spec = spec, FramesRemaining = attack.ActiveFrames,
-            Attack = EffectiveAttack(attack, spec),
+            Attack = EffectiveAttack(attack, spec), ResolvedRadius = radius,
         };
         hb.AddChild(new CollisionShape2D { Shape = new CircleShape2D { Radius = radius } });
         // Grab boxes are specced but unbuilt: they exist for the debug overlay only.
@@ -80,6 +80,7 @@ public partial class HitboxManager : Node, IHitboxManager
                         if (hb.HasHit) break;
                         Rules.ApplyHit(hb.Attacker, defender, hb.Attack, hurt.CurrentType, hurt.ArmorBreakKb);
                         hb.HasHit = true;
+                        hb.RehitTimer = hb.Spec.RehitFrames; // 0 keeps HasHit for the box's lifetime
                         break;
                 }
             };
@@ -126,7 +127,11 @@ public partial class HitboxManager : Node, IHitboxManager
                     + new Vector2(hb.Spec.OffsetX * hb.Attacker.Facing, hb.Spec.OffsetY);
             }
             hb.FramesRemaining--;
-            if (hb.FramesRemaining <= 0) hb.QueueFree();
+            if (hb.FramesRemaining <= 0) { hb.QueueFree(); continue; }
+            // Rehit stream: a box that already hit may hit again after its
+            // refractory period (Spec.RehitFrames), while still active.
+            if (hb.HasHit && hb.RehitTimer > 0 && --hb.RehitTimer <= 0)
+                hb.HasHit = false;
         }
         for (var i = BlockedFlashes.Count - 1; i >= 0; i--)
         {

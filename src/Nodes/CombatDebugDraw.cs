@@ -64,11 +64,12 @@ public partial class CombatDebugDraw : Node2D
         foreach (var child in Hitboxes.GetChildren())
         {
             if (child is not Hitbox hb) continue;
-            DrawCircle(hb.Position, hb.Spec.Radius, HitboxFill(hb));
+            DrawCircle(hb.Position, hb.ResolvedRadius, HitboxFill(hb));
             if (hb.Spec.Type == HitboxType.Damage)
             {
-                var dir = hb.Attack.Direction * hb.Attacker.Facing * 20f;
-                DrawLine(hb.Position, hb.Position + dir, new Color(1, 1, 0), 1f);
+                // Knockback direction: thin white line inside the circle (framedata style).
+                var dir = hb.Attack.Direction * hb.Attacker.Facing * hb.ResolvedRadius;
+                DrawLine(hb.Position, hb.Position + dir, new Color(1, 1, 1, 0.9f), 1f);
             }
         }
         foreach (var (pos, frames) in Hitboxes.BlockedFlashes)
