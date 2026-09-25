@@ -35,4 +35,14 @@ public class CombatDataTests
         Assert.Equal(180, charge!.MaxChargeFrames);
         Assert.Equal(180, charge.MaxHoldFrames);
     }
+
+    [Fact]
+    public void ByteHeavy_ArmsHyperArmorDuringActiveFrames()
+    {
+        var heavy = ByteMoveset.Create().Get(AttackSlot.NeutralHeavy);
+        var armor = Assert.Single(heavy.Armor);
+        Assert.Equal(LimbGroup.Arm, armor.Group);
+        Assert.Equal(HurtboxType.HyperArmor, armor.Type);
+        Assert.Null(armor.BreakKbThreshold);
+    }
 }

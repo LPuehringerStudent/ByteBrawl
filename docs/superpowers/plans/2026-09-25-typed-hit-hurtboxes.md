@@ -524,9 +524,10 @@ Append to `tests/ByteBrawl.Tests/FighterStateMachineAttackTests.cs` (inside the 
     [Fact] public void StageArmor_AppliesAtSpawnFrame()
     {
         var (fsm, f, _) = NewArmoredFsm();
-        fsm.Update(Neutral() with { AttackLight = true });
+        fsm.Update(Neutral() with { AttackLight = true }); // frame 0: attack starts
+        fsm.Update(Neutral()); // frame 1: before SpawnFrame 2
         Assert.False(f.HurtboxOverrides.ContainsKey(LimbGroup.Arm));
-        fsm.Update(Neutral()); // state frame 2: stage spawns
+        fsm.Update(Neutral()); // frame 2: stage spawns
         Assert.Equal(HurtboxType.HyperArmor, f.HurtboxOverrides[LimbGroup.Arm]);
     }
 

@@ -18,6 +18,7 @@ public static class ByteMoveset
             Id = "sword-heavy", BaseDamage = 11, BaseKnockback = 230, Scaling = 1.5f,
             Direction = new Vector2(1, -0.3f), HitstunFrames = 20, ActiveFrames = 6,
             Hitboxes = { new HitboxSpec { OffsetX = 14, OffsetY = -2, Radius = 7 } },
+            Armor = { new ArmorSpec { Group = LimbGroup.Arm, Type = HurtboxType.HyperArmor } },
             Charge = new ChargeConfig
             {
                 MinChargeFrames = 30, MaxChargeFrames = 180, MaxHoldFrames = 180,

@@ -20,6 +20,9 @@ public class FighterStateMachine
     private int _attackTotalFrames = DefaultAttackDuration;
     private AttackData? _chargeAttack;
     private FighterState _chargeFiredState;
+    private int _armorUntilFrame = -1;
+    private readonly List<LimbGroup> _armoredGroups = new();
+    private bool _intangibleActive;
 
     public FighterState CurrentState => _state;
     public int StateFrames => _stateFrames;
@@ -44,6 +47,7 @@ public class FighterStateMachine
 
         if (_fighter.HitstunFrames > 0)
         {
+            ClearCombatOverrides();
             _fighter.DeactivateShield();
             SetState(FighterState.Hitstun);
             _stateFrames++;
@@ -64,11 +68,16 @@ public class FighterStateMachine
             if (_stateFrames >= SpotDodgeTapThreshold && actions.ShieldHeld)
             {
                 _fighter.InvincibleFrames = 0;
+                if (_intangibleActive) SetIntangible(false);
                 _fighter.ShieldActive = true;
                 SetState(FighterState.Shield);
                 return;
             }
-            if (_stateFrames >= SpotDodgeFrames) SetState(FighterState.Idle);
+            if (_stateFrames >= SpotDodgeFrames)
+            {
+                if (_intangibleActive) SetIntangible(false);
+                SetState(FighterState.Idle);
+            }
             return;
         }
 
@@ -77,6 +86,7 @@ public class FighterStateMachine
             _stateFrames++;
             if (_stateFrames >= AirDodgeFrames)
             {
+                if (_intangibleActive) SetIntangible(false);
                 _fighter.Velocity = new Vector2(_fighter.Velocity.X, 80);
                 SetState(FighterState.Fall);
             }
@@ -151,10 +161,17 @@ public class FighterStateMachine
     private void TickAttack(ActionFrame actions)
     {
         _stateFrames++;
+        if (_armorUntilFrame >= 0 && _stateFrames >= _armorUntilFrame)
+        {
+            foreach (var g in _armoredGroups) _fighter.SetHurtboxOverride(g, null);
+            _armoredGroups.Clear();
+            _armorUntilFrame = -1;
+        }
         while (_nextStageIndex < _sequence.Length &&
                _stateFrames >= _sequence[_nextStageIndex].SpawnFrame)
         {
             var stage = _sequence[_nextStageIndex++];
+            ApplyArmor(stage, _stateFrames + stage.ActiveFrames);
             foreach (var spec in stage.Hitboxes)
                 _hitboxes.Spawn(_fighter, stage, spec);
         }
@@ -202,6 +219,7 @@ public class FighterStateMachine
             HitstunFrames = _chargeAttack.HitstunFrames,
             ActiveFrames = _chargeAttack.ActiveFrames,
             Hitboxes = _chargeAttack.Hitboxes,
+            Armor = _chargeAttack.Armor,
         };
         _fighter.SetChargingFull(false);
         _chargeAttack = null;
@@ -233,8 +251,11 @@ public class FighterStateMachine
         _attackCooldown = _attackTotalFrames;
 
         if (_sequence.Length == 0)
+        {
             foreach (var spec in attack.Hitboxes)
                 _hitboxes.Spawn(_fighter, attack, spec);
+            ApplyArmor(attack, attack.ActiveFrames); // flat attack starts at frame 0
+        }
     }
 
     private void SetState(FighterState newState)
@@ -248,7 +269,39 @@ public class FighterStateMachine
             _fighter.SetChargingFull(false);
         }
         if (newState == FighterState.SpotDodge)
+        {
             _fighter.EnterInvincibility(SpotDodgeFrames);
+            SetIntangible(true);
+        }
+        if (newState == FighterState.AirDodge) SetIntangible(true);
+    }
+
+    private void SetIntangible(bool on)
+    {
+        foreach (LimbGroup g in Enum.GetValues<LimbGroup>())
+            _fighter.SetHurtboxOverride(g, on ? HurtboxType.Intangible : null);
+        _intangibleActive = on;
+    }
+
+    private void ApplyArmor(AttackData attack, int expiryFrame)
+    {
+        if (attack.Armor.Count == 0) return;
+        foreach (var a in attack.Armor)
+        {
+            _fighter.SetHurtboxOverride(a.Group, a.Type, a.BreakKbThreshold ?? float.MaxValue);
+            if (!_armoredGroups.Contains(a.Group)) _armoredGroups.Add(a.Group);
+        }
+        _armorUntilFrame = Math.Max(_armorUntilFrame, expiryFrame);
+    }
+
+    // Hitstun can interrupt an armored/intangible window (armor covers some
+    // limbs, not all) — never leave stale overrides behind.
+    private void ClearCombatOverrides()
+    {
+        if (_intangibleActive) SetIntangible(false);
+        foreach (var g in _armoredGroups) _fighter.SetHurtboxOverride(g, null);
+        _armoredGroups.Clear();
+        _armorUntilFrame = -1;
     }
 
     private static bool IsAttackState(FighterState s) =>

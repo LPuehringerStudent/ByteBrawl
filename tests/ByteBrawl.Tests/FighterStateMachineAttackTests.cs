@@ -1,5 +1,6 @@
 using ByteBrawl.Combat;
 using ByteBrawl.Data;
+using Godot;
 using Xunit;
 
 namespace ByteBrawl.Tests;
@@ -87,5 +88,62 @@ public class FighterStateMachineAttackTests
         private readonly Action _onFull;
         public ObservingFighter(Action onFull) => _onFull = onFull;
         public override void SetChargingFull(bool value) { if (value) _onFull(); }
+    }
+
+    private static (FighterStateMachine, FakeFighter, FakeHitboxManager) NewArmoredFsm()
+    {
+        var stage = new AttackStage
+        {
+            Id = "armored", BaseDamage = 5, BaseKnockback = 50, Scaling = 0,
+            Direction = new Vector2(1, 0), HitstunFrames = 5, ActiveFrames = 4, SpawnFrame = 2,
+            Hitboxes = { new HitboxSpec { OffsetX = 10, Radius = 6 } },
+            Armor = { new ArmorSpec { Group = LimbGroup.Arm, Type = HurtboxType.HyperArmor } },
+        };
+        var attack = new AttackData { Id = "armored-atk", ActiveFrames = 4, Stages = { stage } };
+        var moveset = new Moveset { Stats = new FighterStats { RunSpeed = 120, JumpSpeed = 280, Weight = 1f } };
+        moveset.Attacks[AttackSlot.NeutralLight] = attack;
+        var f = new FakeFighter();
+        var hb = new FakeHitboxManager();
+        return (new FighterStateMachine(f, hb, moveset), f, hb);
+    }
+
+    [Fact] public void StageArmor_AppliesAtSpawnFrame()
+    {
+        var (fsm, f, _) = NewArmoredFsm();
+        fsm.Update(Neutral() with { AttackLight = true }); // frame 0: attack starts
+        fsm.Update(Neutral()); // frame 1: before SpawnFrame 2
+        Assert.False(f.HurtboxOverrides.ContainsKey(LimbGroup.Arm));
+        fsm.Update(Neutral()); // frame 2: stage spawns
+        Assert.Equal(HurtboxType.HyperArmor, f.HurtboxOverrides[LimbGroup.Arm]);
+    }
+
+    [Fact] public void StageArmor_ClearsAfterActiveFrames()
+    {
+        var (fsm, f, _) = NewArmoredFsm();
+        fsm.Update(Neutral() with { AttackLight = true });
+        for (var i = 0; i < 6; i++) fsm.Update(Neutral()); // frame 2+4: expired
+        Assert.False(f.HurtboxOverrides.TryGetValue(LimbGroup.Arm, out var t) && t.HasValue);
+    }
+
+    [Fact] public void SpotDodge_SetsAllGroupsIntangibleAndClearsOnExit()
+    {
+        var (fsm, f, _) = NewFsm();
+        f.Grounded = true;
+        fsm.Update(Neutral() with { ShieldPressed = true });
+        foreach (LimbGroup g in Enum.GetValues<LimbGroup>())
+            Assert.Equal(HurtboxType.Intangible, f.HurtboxOverrides[g]);
+        for (var i = 0; i < 25; i++) fsm.Update(Neutral());
+        Assert.Equal(FighterState.Idle, fsm.CurrentState);
+        foreach (LimbGroup g in Enum.GetValues<LimbGroup>())
+            Assert.True(!f.HurtboxOverrides.TryGetValue(g, out var t) || t is null or HurtboxType.Vulnerable);
+    }
+
+    [Fact] public void AirDodge_SetsAllGroupsIntangible()
+    {
+        var (fsm, f, _) = NewFsm();
+        f.Grounded = false;
+        fsm.Update(Neutral() with { ShieldPressed = true });
+        foreach (LimbGroup g in Enum.GetValues<LimbGroup>())
+            Assert.Equal(HurtboxType.Intangible, f.HurtboxOverrides[g]);
     }
 }
