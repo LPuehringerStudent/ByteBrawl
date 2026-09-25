@@ -29,18 +29,22 @@ public class FighterStateMachineAttackTests
         var (fsm, _, hb) = NewFsm();
         fsm.Update(Neutral() with { AttackSpecial = true });
         for (var i = 0; i < 30; i++) fsm.Update(Neutral());
-        // Stages 2 and 3 carry two hitboxes each (base circle + fist tipper).
+        // Stages 2 and 3 carry two specs each (limb chain + fist tipper).
         Assert.Equal(5, hb.Spawns.Count);
         Assert.Equal("byte-special-1", hb.Spawns[0].Attack.Id);
         Assert.Equal("byte-special-2", hb.Spawns[1].Attack.Id);
         Assert.Equal("byte-special-2", hb.Spawns[2].Attack.Id);
         Assert.Equal("byte-special-3", hb.Spawns[3].Attack.Id);
         Assert.Equal("byte-special-3", hb.Spawns[4].Attack.Id);
-        Assert.Equal(24f, hb.Spawns[1].Spec.OffsetX);
-        Assert.Equal(30f, hb.Spawns[2].Spec.OffsetX);
-        Assert.True(hb.Spawns[2].Spec.Radius < hb.Spawns[1].Spec.Radius); // fist tip < elbow
-        Assert.Equal(41f, hb.Spawns[4].Spec.OffsetX);
+        Assert.Equal(new[] { "NearUpperArm", "NearForearm", "NearHand" }, hb.Spawns[0].Spec.LimbChain);
+        Assert.True(hb.Spawns[0].Spec.NoKnockback); // carrying hits stun only
+        Assert.Single(hb.Spawns[2].Spec.LimbChain); // tipper: hand only
+        Assert.Equal("NearHand", hb.Spawns[2].Spec.LimbChain[0]);
+        Assert.Equal(3f, hb.Spawns[2].Spec.DamageOverride);
+        Assert.True(hb.Spawns[2].Spec.NoKnockback);
         Assert.Equal(7f, hb.Spawns[4].Spec.DamageOverride); // tipper hits harder
+        Assert.Equal(210f, hb.Spawns[4].Spec.KnockbackOverride);
+        Assert.False(hb.Spawns[4].Spec.NoKnockback); // finisher launches
     }
 
     [Fact] public void ChargeableHeavy_EntersChargingWithoutSpawning()
@@ -231,6 +235,16 @@ public class FighterStateMachineAttackTests
         fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1, AttackHeavyHeld = true });
         Assert.Equal(FighterState.Charging, fsm.CurrentState);
         Assert.Empty(hb.Spawns);
+    }
+
+    [Fact] public void GroundedUpHeavy_ChargedRelease_Hops()
+    {
+        var (fsm, f, _) = NewFsm();
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1, AttackHeavyHeld = true });
+        for (var i = 0; i < 35; i++) fsm.Update(Neutral() with { AttackHeavyHeld = true });
+        f.Velocity = Vector2.Zero; // ensure the hop is the velocity source
+        fsm.Update(Neutral() with { AttackHeavyHeld = false });
+        Assert.Equal(-180, f.Velocity.Y, 0.01f); // GroundBoost
     }
 
     [Fact] public void GroundedUpHeavy_ChargedRelease_FiresScaledStages()

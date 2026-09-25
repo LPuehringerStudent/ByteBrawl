@@ -54,10 +54,13 @@ public class MatchRules
         var preDamage = defender.Damage;
         defender.TakeDamage(attack.BaseDamage);
         if (armored) return;
-        var knockback = attack.BaseKnockback + preDamage * attack.Scaling;
-        defender.ApplyKnockback(new Vector2(
-            attack.Direction.X * attacker.Facing * knockback,
-            attack.Direction.Y * knockback));
+        if (!attack.NoKnockback)
+        {
+            var knockback = attack.BaseKnockback + preDamage * attack.Scaling;
+            defender.ApplyKnockback(new Vector2(
+                attack.Direction.X * attacker.Facing * knockback,
+                attack.Direction.Y * knockback));
+        }
         defender.EnterHitstun(attack.HitstunFrames);
     }
 

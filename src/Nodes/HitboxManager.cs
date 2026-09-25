@@ -27,14 +27,35 @@ public partial class HitboxManager : Node, IHitboxManager
     public void Spawn(IFighter attacker, AttackData attack, HitboxSpec spec)
     {
         if (attacker is not Fighter a || Rules == null) return;
-        var shape = new CollisionShape2D { Shape = new CircleShape2D { Radius = spec.Radius } };
+        // Limb-anchored chain: one circle per named limb, auto-placed at the
+        // limb's capsule center, following the limb's pose while active.
+        if (spec.LimbChain.Count > 0)
+        {
+            foreach (var name in spec.LimbChain)
+            {
+                var limb = a.Rig.Find(name);
+                var (center, radius) = LimbRig.ChainGeometry(limb.Size, limb.Pivot, spec.RadiusScale);
+                var hb = NewHitbox(a, attack, spec, radius);
+                hb.Anchor = limb;
+                hb.AnchorOffset = center;
+                hb.Position = limb.GlobalTransform * center;
+                AddChild(hb);
+            }
+            return;
+        }
+        var fixedHb = NewHitbox(a, attack, spec, spec.Radius);
+        fixedHb.Position = a.Position + new Vector2(spec.OffsetX * a.Facing, spec.OffsetY);
+        AddChild(fixedHb);
+    }
+
+    private Hitbox NewHitbox(Fighter attacker, AttackData attack, HitboxSpec spec, float radius)
+    {
         var hb = new Hitbox
         {
-            Attacker = a, Spec = spec, FramesRemaining = attack.ActiveFrames,
-            Position = a.Position + new Vector2(spec.OffsetX * a.Facing, spec.OffsetY),
+            Attacker = attacker, Spec = spec, FramesRemaining = attack.ActiveFrames,
             Attack = EffectiveAttack(attack, spec),
         };
-        hb.AddChild(shape);
+        hb.AddChild(new CollisionShape2D { Shape = new CircleShape2D { Radius = radius } });
         // Grab boxes are specced but unbuilt: they exist for the debug overlay only.
         if (spec.Type != HitboxType.Grab)
         {
@@ -63,13 +84,13 @@ public partial class HitboxManager : Node, IHitboxManager
                 }
             };
         }
-        AddChild(hb);
+        return hb;
     }
 
     // Sweet/sour spot support: a spec may override damage/knockback for its circle.
     private static AttackData EffectiveAttack(AttackData attack, HitboxSpec spec)
     {
-        if (spec.DamageOverride is null && spec.KnockbackOverride is null)
+        if (spec.DamageOverride is null && spec.KnockbackOverride is null && !spec.NoKnockback)
             return attack;
         return new AttackData
         {
@@ -80,6 +101,7 @@ public partial class HitboxManager : Node, IHitboxManager
             Direction = attack.Direction,
             HitstunFrames = attack.HitstunFrames,
             ActiveFrames = attack.ActiveFrames,
+            NoKnockback = attack.NoKnockback || spec.NoKnockback,
         };
     }
 
@@ -88,10 +110,21 @@ public partial class HitboxManager : Node, IHitboxManager
         foreach (var child in GetChildren())
         {
             if (child is not Hitbox hb) continue;
-            // Follow the attacker: fast-moving attacks (recovery) would leave
-            // their spawn position behind within a frame or two.
-            hb.Position = hb.Attacker.Position
-                + new Vector2(hb.Spec.OffsetX * hb.Attacker.Facing, hb.Spec.OffsetY);
+            // Follow the limb (chain circle) or the attacker: fast-moving
+            // attacks (recovery) would leave their spawn position behind.
+            // Chain circles are drawn/resolved at the limb's segment center,
+            // which sits ~a radius above the joint pivot in the fighter's
+            // local frame — the same convention as the hurtbox capsules.
+            if (hb.Anchor != null)
+            {
+                hb.Position = hb.Attacker.Position
+                    + (hb.Anchor.GlobalTransform * hb.AnchorOffset - hb.Attacker.GlobalTransform.Origin);
+            }
+            else
+            {
+                hb.Position = hb.Attacker.Position
+                    + new Vector2(hb.Spec.OffsetX * hb.Attacker.Facing, hb.Spec.OffsetY);
+            }
             hb.FramesRemaining--;
             if (hb.FramesRemaining <= 0) hb.QueueFree();
         }

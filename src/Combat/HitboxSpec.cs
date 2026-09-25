@@ -16,4 +16,10 @@ public class HitboxSpec
     public Vector2 Push = Vector2.Zero;      // Wind: applied to victim velocity, no damage
     public string SearchId = "";             // Search: detection-only callback key
     public GrabData? Grab;                   // Grab: throw data (mechanics unbuilt)
+    public bool NoKnockback;                 // Stun-only: damage + hitstun, zero knockback (multihit filler)
+    // Limb-anchored chain: when non-empty, one circle per named limb,
+    // auto-derived from limb geometry and following the limb's pose per frame.
+    // When empty, the fixed OffsetX/OffsetY circle is used instead.
+    public List<string> LimbChain = new();
+    public float RadiusScale = 1f;           // radius multiplier vs. the limb-derived default
 }

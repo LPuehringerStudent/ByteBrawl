@@ -73,9 +73,25 @@ hitstun.
 
 "Effective attack": a `HitboxSpec` may carry `DamageOverride`/`KnockbackOverride`
 for sweet spots (e.g. Byte's special stage 3 fist tipper: 7 dmg / 210 kb vs. the
-base 5/180). `HitboxManager.EffectiveAttack` folds those into the attack passed to
-`ApplyHit` — so the armor break threshold compares against the *effective* base
-knockback too.
+base 5/180) and `NoKnockback` for stun-only hits — damage + hitstun with zero
+knockback, the filler for multi-hit attacks (Byte's carrying hits use it, so
+they no longer shove the victim out of the follow-ups). Both fold into the
+effective attack in `HitboxManager.EffectiveAttack`, so the armor break
+threshold compares against the *effective* base knockback too.
+
+## Limb-anchored chains
+
+The gif-style default: `HitboxSpec.LimbChain` names limb parts
+(e.g. `NearUpperArm, NearForearm, NearHand`) and the manager spawns **one
+circle per limb**, auto-placed at the limb's capsule center (same geometry rule
+as hurtboxes, `LimbRig.ChainGeometry`) with radius = limb thickness ×
+`RadiusScale`. Each circle tracks its limb's transform every frame, so the
+chain hugs the arm through the whole swing, and it refits automatically when
+real art swaps in. `RadiusScale` < 1 on a hand-only chain is the sweet-spot
+idiom. Manual `OffsetX/OffsetY` specs still work and mix freely with chains.
+Note the draw convention: chain circles sit at the segment center, which is
+~a radius off the joint pivot in the fighter's local frame — the same
+convention as the hurtbox capsules, so hitboxes and hurtboxes line up.
 
 ## Who sets hurtbox types
 

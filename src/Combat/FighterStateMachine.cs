@@ -300,6 +300,10 @@ public class FighterStateMachine
         _fighter.SetChargingFull(false);
         _chargeAttack = null;
         StartAttack(_chargeFiredState, charged);
+        // A grounded charge release of a recovery-config attack (up-heavy)
+        // gets its reduced hop; the air path applies the full boost on selection.
+        if (charged.Recovery is { } rec && _fighter.IsGrounded)
+            _fighter.Velocity = new Vector2(_fighter.Velocity.X, -rec.GroundBoost);
     }
 
     private void StartAttack(FighterState state, AttackData attack)

@@ -74,6 +74,17 @@ public class MatchRulesTests
         Assert.Equal(10, p2.HitstunFrames);
     }
 
+    [Fact] public void Hit_NoKnockback_StunsWithoutVelocity()
+    {
+        var (r, p1, p2) = NewMatch();
+        var stunOnly = Attack();
+        stunOnly.NoKnockback = true;
+        r.ApplyHit(p1, p2, stunOnly);
+        Assert.Equal(10, p2.Damage);
+        Assert.Equal(Vector2.Zero, p2.Velocity);
+        Assert.Equal(10, p2.HitstunFrames);
+    }
+
     [Fact] public void Wind_PushesWithoutDamageOrHitstun()
     {
         var (r, _, p2) = NewMatch();

@@ -6,5 +6,6 @@ namespace ByteBrawl.Combat;
 public class RecoveryConfig
 {
     public float VerticalBoost;
+    public float GroundBoost;      // applied when a grounded charge of this attack is released
     public bool CanActAfter = false;
 }

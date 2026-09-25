@@ -16,4 +16,7 @@ public class AttackData
     public List<AttackStage> Stages = new();
     public List<HitboxSpec> Hitboxes = new();
     public List<ArmorSpec> Armor = new();
+    // Transient: set by HitboxManager.EffectiveAttack from HitboxSpec.NoKnockback.
+    // Not authored directly on attacks.
+    public bool NoKnockback;
 }

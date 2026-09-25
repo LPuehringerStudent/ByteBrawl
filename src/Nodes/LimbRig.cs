@@ -98,6 +98,17 @@ public partial class LimbRig : Node2D
         : partName.Contains("Thigh") || partName.Contains("Shin") || partName.Contains("Foot") ? LimbGroup.Leg
         : LimbGroup.Torso; // Torso, Pelvis
 
+    // Circle placement for limb-anchored hitbox chains: same geometry rule as
+    // hurtboxes (center on the segment, radius = half the limb thickness),
+    // in limb-local space — the limb's own transform handles rotation.
+    public static (Vector2 Center, float Radius) ChainGeometry(Vector2 size, Vector2 pivot, float radiusScale)
+    {
+        var center = size / 2 - pivot;
+        var alongX = size.X > size.Y;
+        var radius = (alongX ? size.Y : size.X) / 2f * radiusScale;
+        return (center, radius);
+    }
+
     // Capsule from the part's own geometry: centered on the sprite, radius =
     // half the limb thickness, height along the long axis with slight joint overlap.
     private static void AttachHurtbox(LimbRig rig, Limb limb)
