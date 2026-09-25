@@ -146,4 +146,82 @@ public class FighterStateMachineAttackTests
         foreach (LimbGroup g in Enum.GetValues<LimbGroup>())
             Assert.Equal(HurtboxType.Intangible, f.HurtboxOverrides[g]);
     }
+
+    private static AttackData RecoveryAttack(bool canActAfter = false) => new()
+    {
+        Id = "test-recovery", BaseDamage = 6, BaseKnockback = 150, Scaling = 1f,
+        Direction = new Vector2(0, -1), HitstunFrames = 10, ActiveFrames = 4,
+        Hitboxes = { new HitboxSpec { OffsetX = 0, Radius = 8 } },
+        Recovery = new RecoveryConfig { VerticalBoost = 380, CanActAfter = canActAfter },
+    };
+
+    private static (FighterStateMachine, FakeFighter, FakeHitboxManager) NewRecoveryFsm(bool canActAfter = false)
+    {
+        var moveset = new Moveset { Stats = new FighterStats { RunSpeed = 120, JumpSpeed = 280, Weight = 1f } };
+        moveset.Attacks[AttackSlot.UpHeavy] = RecoveryAttack(canActAfter);
+        moveset.Attacks[AttackSlot.NeutralHeavy] = new AttackData
+        {
+            Id = "neutral-heavy", BaseDamage = 5, BaseKnockback = 100, Scaling = 1f,
+            Direction = new Vector2(1, 0), HitstunFrames = 10, ActiveFrames = 4,
+            Hitboxes = { new HitboxSpec { OffsetX = 0, Radius = 8 } },
+        };
+        var f = new FakeFighter { Grounded = false };
+        var hb = new FakeHitboxManager();
+        return (new FighterStateMachine(f, hb, moveset), f, hb);
+    }
+
+    [Fact] public void AirUpHeavy_FiresRecoveryWithBoost()
+    {
+        var (fsm, f, hb) = NewRecoveryFsm();
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1 });
+        Assert.Equal(FighterState.HeavyAttack, fsm.CurrentState);
+        Assert.Equal(-380, f.Velocity.Y, 0.01f);
+        Assert.Single(hb.Spawns);
+        Assert.Equal("test-recovery", hb.Spawns[0].Attack.Id);
+    }
+
+    [Fact] public void AirHeavyWithoutUp_FiresNeutralHeavy()
+    {
+        var (fsm, f, hb) = NewRecoveryFsm();
+        fsm.Update(Neutral() with { AttackHeavy = true }); // no up: not a recovery
+        Assert.Equal(FighterState.HeavyAttack, fsm.CurrentState);
+        Assert.Single(hb.Spawns);
+        Assert.Equal("neutral-heavy", hb.Spawns[0].Attack.Id);
+        Assert.Equal(0, f.Velocity.Y, 0.01f); // no boost
+    }
+
+    [Fact] public void Recovery_OncePerAirtime_SecondAttemptIgnored()
+    {
+        var (fsm, f, hb) = NewRecoveryFsm();
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1 });
+        for (var i = 0; i < 25; i++) // FakeFighter has no gravity: simulate falling so post-attack state is Fall
+        {
+            f.Velocity = new Vector2(f.Velocity.X, 100);
+            fsm.Update(Neutral());
+        }
+        Assert.Equal(FighterState.Fall, fsm.CurrentState);
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1 }); // spent
+        Assert.Single(hb.Spawns);
+        Assert.Equal(FighterState.Fall, fsm.CurrentState);
+    }
+
+    [Fact] public void Landing_ResetsRecoveryAvailability()
+    {
+        var (fsm, f, hb) = NewRecoveryFsm();
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1 });
+        for (var i = 0; i < 25; i++) fsm.Update(Neutral());
+        f.Grounded = true;
+        fsm.Update(Neutral()); // land
+        f.Grounded = false;
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1 });
+        Assert.Equal(2, hb.Spawns.Count);
+    }
+
+    [Fact] public void GroundedHeavyWithUp_StillFiresNeutralHeavy()
+    {
+        var (fsm, _, hb) = NewFsm(); // ByteMoveset: grounded heavy is the chargeable neutral
+        fsm.Update(Neutral() with { AttackHeavy = true, MoveY = -1, AttackHeavyHeld = true });
+        Assert.Equal(FighterState.Charging, fsm.CurrentState);
+        Assert.Empty(hb.Spawns);
+    }
 }

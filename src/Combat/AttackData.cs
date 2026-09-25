@@ -12,6 +12,7 @@ public class AttackData
     public int HitstunFrames;
     public int ActiveFrames;
     public ChargeConfig? Charge;
+    public RecoveryConfig? Recovery;
     public List<AttackStage> Stages = new();
     public List<HitboxSpec> Hitboxes = new();
     public List<ArmorSpec> Armor = new();

@@ -154,7 +154,27 @@ public class FighterStateMachine
         }
 
         if (actions.AttackLight && _attackCooldown == 0) { StartAttack(FighterState.LightAttack, _moveset.Get(AttackSlot.NeutralLight)); return; }
-        if (actions.AttackHeavy && _attackCooldown == 0) { StartAttack(FighterState.HeavyAttack, _moveset.Get(AttackSlot.NeutralHeavy)); return; }
+        if (actions.AttackHeavy && _attackCooldown == 0)
+        {
+            // Air + up: recovery. Consumes the input even when spent (Smash-style).
+            if (!_fighter.IsGrounded && actions.MoveY < 0)
+            {
+                if (!_recoveryUsed)
+                {
+                    var upHeavy = _moveset.Get(AttackSlot.UpHeavy);
+                    StartAttack(FighterState.HeavyAttack, upHeavy);
+                    if (upHeavy.Recovery is { } rec)
+                    {
+                        _fighter.Velocity = new Vector2(_fighter.Velocity.X, -rec.VerticalBoost);
+                        _recoveryUsed = true;
+                        _attacksLocked = !rec.CanActAfter;
+                    }
+                }
+                return;
+            }
+            StartAttack(FighterState.HeavyAttack, _moveset.Get(AttackSlot.NeutralHeavy));
+            return;
+        }
         if (actions.AttackSpecial && _attackCooldown == 0) { StartAttack(FighterState.Special, _moveset.Get(AttackSlot.NeutralSpecial)); return; }
 
         if (_fighter.IsGrounded)
@@ -246,6 +266,7 @@ public class FighterStateMachine
             ActiveFrames = _chargeAttack.ActiveFrames,
             Hitboxes = _chargeAttack.Hitboxes,
             Armor = _chargeAttack.Armor,
+            Recovery = _chargeAttack.Recovery,
         };
         _fighter.SetChargingFull(false);
         _chargeAttack = null;
