@@ -12,7 +12,7 @@ godot --path soldier --editor --import
 godot --path soldier
 ```
 
-Controls: A/D or arrows move; Space/W/Up jump and double jump; J chains jab/cross/kick (2/3/4%); R resets; Esc opens dummy settings; F3 displays hurtboxes and active attack circles.
+Controls: A/D or arrows move; Space/W/Up jump and double jump; J chains jab/cross/kick (2/3/4%); R resets; Esc opens dummy settings; F3 displays hurtboxes and active attack circles; F4 toggles all active collision geometry, including stage, movement bodies, dummy, hurtboxes and attack circles.
 
 ## Shared physics and collision
 
