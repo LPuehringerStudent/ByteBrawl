@@ -6,6 +6,10 @@ namespace ByteBrawl.Nodes;
 
 public partial class Fighter : CharacterBody2D, IFighter
 {
+    // Thin (pass-through) platforms live on this collision layer so a dropping
+    // fighter can mask them out per-fighter without affecting the other one.
+    public const uint OneWayPlatformLayer = 2;
+
     [Export] public string MovesetName = "byte";
     [Export] public int PlayerIndex = 1;
     public FighterStateMachine Fsm { get; private set; } = null!;
@@ -21,6 +25,8 @@ public partial class Fighter : CharacterBody2D, IFighter
     private int _facing = 1;
     public int Facing { get => _facing; set => _facing = value; }
     public bool IsGrounded => IsOnFloor();
+    public bool OnPassThroughPlatform { get; private set; }
+    private int _dropThroughFrames;
     public int HitstunFrames { get; set; }
     public int InvincibleFrames { get; set; }
     public bool ShieldActive { get; set; }
@@ -29,6 +35,7 @@ public partial class Fighter : CharacterBody2D, IFighter
 
     public override void _Ready()
     {
+        CollisionMask |= OneWayPlatformLayer;
         var bodyShape = new CollisionShape2D { Shape = new RectangleShape2D { Size = new Vector2(12, 20) } };
         AddChild(bodyShape);
         _rig = LimbRig.CreatePlaceholder();
@@ -47,11 +54,27 @@ public partial class Fighter : CharacterBody2D, IFighter
         if (!IsOnFloor()) Velocity = new Vector2(Velocity.X, Velocity.Y + 800f * (float)delta);
         if (HitstunFrames > 0) HitstunFrames--;
         if (InvincibleFrames > 0) InvincibleFrames--;
+        if (_dropThroughFrames > 0 && --_dropThroughFrames == 0)
+            CollisionMask |= OneWayPlatformLayer;
         Fsm.Update(LocalInput.Capture(PlayerIndex));
         MoveAndSlide();
+        OnPassThroughPlatform = false;
+        for (var i = 0; i < GetSlideCollisionCount(); i++)
+        {
+            var collision = GetSlideCollision(i);
+            if (collision.GetNormal().Y < -0.5f && collision.GetCollider() is Node node && node.IsInGroup("oneway"))
+            { OnPassThroughPlatform = true; break; }
+        }
         // mirror to face left/right; 0.65 fits the ~33px rig into the 20px-tall collision box
         _rig.Scale = new Vector2(Facing * 0.65f, 0.65f);
         GetNode<PosePlayer>("PosePlayer").Play(Fsm.CurrentState, Fsm.StateFrames, Fsm.IsRecovering);
+    }
+
+    public void DropThroughPlatform()
+    {
+        _dropThroughFrames = 15; // ~0.25s: enough to clear a 16px platform while falling
+        CollisionMask &= ~OneWayPlatformLayer;
+        Velocity = new Vector2(Velocity.X, 40f);
     }
 
     public void TakeDamage(float amount) => Damage += amount;

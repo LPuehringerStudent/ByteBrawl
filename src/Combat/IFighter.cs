@@ -10,6 +10,13 @@ public interface IFighter
     Vector2 Position { get; set; }
     Vector2 Velocity { get; set; }
     bool IsGrounded { get; }
+    // True while standing on a pass-through platform. Down drops through
+    // those instead of crouching (FSM reads this; Fighter computes it from
+    // its floor collisions each physics frame).
+    bool OnPassThroughPlatform { get; }
+    // Briefly ignore the one-way platform layer so this fighter falls through
+    // the platform it is standing on. Other fighters are unaffected.
+    void DropThroughPlatform();
     int HitstunFrames { get; set; }
     int InvincibleFrames { get; set; }
     bool ShieldActive { get; set; }

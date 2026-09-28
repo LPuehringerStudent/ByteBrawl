@@ -7,12 +7,17 @@ public partial class Arena : Node2D
 {
     [Export] public bool Training;
 
-    private static readonly Rect2[] Platforms =
+    private static readonly Vector2[] MainPlatformOutline =
     {
-        new(32, 160, 224, 48),   // main floor (rows 10-12, cols 2-15)
-        new(32, 80, 48, 16),     // left thin platform
-        new(224, 80, 48, 16),    // right thin platform
+        new(16, 160), new(272, 160), // wide top edge
+        new(192, 208), new(96, 208), // narrow flat bottom: inverted trapezoid
     };
+    private static readonly Rect2[] ThinPlatforms =
+    {
+        new(32, 80, 48, 16),  // left thin platform
+        new(224, 80, 48, 16), // right thin platform
+    };
+    private static readonly Color PlatformColor = new(0.35f, 0.35f, 0.42f);
     private static readonly Rect2 BlastZone = new(-160, -180, 640, 540);
 
     private MatchRules _rules = null!;
@@ -85,20 +90,31 @@ public partial class Arena : Node2D
 
     private void BuildStage()
     {
-        foreach (var rect in Platforms)
+        // Main stage: solid inverted trapezoid (wide top, slanted sides, narrow
+        // flat bottom) so recovering underneath leads toward a ledge, not a wall.
+        var main = new StaticBody2D();
+        main.AddChild(new CollisionPolygon2D { Polygon = MainPlatformOutline });
+        AddChild(main);
+        AddChild(new Polygon2D { Polygon = MainPlatformOutline, Color = PlatformColor, ZIndex = -10 });
+
+        foreach (var rect in ThinPlatforms)
         {
-            var body = new StaticBody2D();
+            // Pass-through: jump up through them, land on top; hold down to
+            // drop (Fighter masks out the one-way layer for a few frames).
+            var body = new StaticBody2D { CollisionLayer = Fighter.OneWayPlatformLayer, CollisionMask = 0 };
+            body.AddToGroup("oneway");
             var shape = new CollisionShape2D
             {
                 Shape = new RectangleShape2D { Size = rect.Size },
                 Position = rect.Position + rect.Size / 2,
+                OneWayCollision = true,
             };
             body.AddChild(shape);
             AddChild(body);
 
             var visual = new Sprite2D
             {
-                Texture = Limb.Solid(rect.Size, new Color(0.35f, 0.35f, 0.42f)),
+                Texture = Limb.Solid(rect.Size, PlatformColor),
                 Position = rect.Position + rect.Size / 2,
                 ZIndex = -10,
             };

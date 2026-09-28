@@ -21,14 +21,36 @@ A fighter is two layers:
 `MoveAndSlide()` → mirror the rig by facing (`_rig.Scale = (Facing*0.65, 0.65)`)
 → play the pose.
 
+## Stage & platforms
+
+Built in code by `Arena.BuildStage` (`src/Nodes/Arena.cs`):
+
+- **Main stage** — a solid *inverted trapezoid* (wide flat top at y=160 from
+  x=16–272, sides slanting inward to a narrow flat bottom at y=208). The slanted
+  sides are shallow enough (~29°) to walk, and put a ledge-like geometry under
+  recovering fighters instead of a flat wall.
+- **Thin platforms** (two, at y=80) — *pass-through*: `OneWayCollision = true`
+  on the shape, so fighters jump up through them and land on top. They live on
+  `Fighter.OneWayPlatformLayer` (collision layer 2) and are in the `"oneway"`
+  group. Holding **down** while standing on one drops you through: the FSM sees
+  `IFighter.OnPassThroughPlatform` (computed from the fighter's floor slide
+  collisions after `MoveAndSlide`) and calls `IFighter.DropThroughPlatform()`,
+  which masks layer 2 out of *that fighter's* collision mask for 15 frames and
+  gives a small downward nudge. The other fighter is unaffected, and the main
+  stage (layer 1) is never masked, so down on solid ground still crouches.
+- **Blast zone** — `Rect2(-160, -180, 640, 540)`; leaving it costs a stock
+  (or respawns in training).
+
 ## States
 
 `FighterState` values and the important transitions (see `Update`/`SetState`):
 
 - `Idle` / `Run` / `Crouch` — grounded movement; facing follows input.
   Holding down with no direction crouches (stationary — pressing a direction
-  stands you up into `Run`; jumping/attacks/shield still work from crouch).
-  Pose-only for now: hurtbox sizes don't change while crouched.
+  stands you up into `Run`; jumping/attacks/shield still work from crouch) —
+  unless you're on a pass-through platform, where down drops you through it
+  (see "Stage & platforms" below). Pose-only for now: hurtbox sizes don't
+  change while crouched.
 - `Jump` / `Fall` — airborne; `Jump` while rising, `Fall` otherwise. `Jump`
   while airborne consumes the fighter's air jumps (`FighterStats.AirJumps`, Byte:
   1), reset on landing; hitstun does not refresh it.

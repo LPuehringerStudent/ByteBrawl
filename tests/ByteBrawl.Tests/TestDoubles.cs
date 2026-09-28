@@ -12,6 +12,9 @@ public class FakeFighter : IFighter
     public Vector2 Velocity { get; set; }
     public bool Grounded { get; set; } = true;
     public bool IsGrounded => Grounded;
+    public bool OnPassThroughPlatform { get; set; }
+    public int DropThroughCalls { get; private set; }
+    public void DropThroughPlatform() { DropThroughCalls++; Grounded = false; }
     public int HitstunFrames { get; set; }
     public int InvincibleFrames { get; set; }
     public bool ShieldActive { get; set; }

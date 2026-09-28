@@ -54,6 +54,26 @@ public class FighterStateMachineMovementTests
         Assert.Equal(FighterState.Fall, fsm.CurrentState);
     }
 
+    [Fact] public void DownOnPassThroughPlatform_DropsThroughInsteadOfCrouching()
+    {
+        var (fsm, f) = NewFsm();
+        f.OnPassThroughPlatform = true;
+        fsm.Update(Neutral() with { MoveY = 1 });
+        Assert.Equal(1, f.DropThroughCalls);
+        Assert.Equal(FighterState.Fall, fsm.CurrentState);
+    }
+
+    [Fact] public void DownAfterDropLandingOnSolidGround_Crouches()
+    {
+        var (fsm, f) = NewFsm();
+        f.OnPassThroughPlatform = true;
+        fsm.Update(Neutral() with { MoveY = 1 }); // drop through the platform
+        f.OnPassThroughPlatform = false;
+        f.Grounded = true; // landed on the solid main stage
+        fsm.Update(Neutral() with { MoveY = 1 });
+        Assert.Equal(FighterState.Crouch, fsm.CurrentState);
+    }
+
     [Fact] public void ShieldHeldOnGround_EntersShield()
     {
         var (fsm, f) = NewFsm();

@@ -203,9 +203,19 @@ public class FighterStateMachine
             }
             else if (actions.MoveY > 0)
             {
-                // Crouch is stationary: pressing a direction stands you up (into Run).
-                SetState(FighterState.Crouch);
-                _fighter.Velocity = new Vector2(0, _fighter.Velocity.Y);
+                if (_fighter.OnPassThroughPlatform)
+                {
+                    // Down on a pass-through platform drops through it; only
+                    // solid ground gets a crouch.
+                    _fighter.DropThroughPlatform();
+                    SetState(FighterState.Fall);
+                }
+                else
+                {
+                    // Crouch is stationary: pressing a direction stands you up (into Run).
+                    SetState(FighterState.Crouch);
+                    _fighter.Velocity = new Vector2(0, _fighter.Velocity.Y);
+                }
             }
             else
             {

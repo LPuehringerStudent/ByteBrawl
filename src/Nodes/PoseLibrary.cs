@@ -38,6 +38,7 @@ public static class PoseLibrary
                 p.Angles["NearUpperArm"] = -25f;
                 p.Angles["FarUpperArm"] = -15f;
                 break;
+            case FighterState.Jump:
                 p.Angles["NearThigh"] = -30f;
                 p.Angles["FarThigh"] = -15f;
                 p.Angles["NearShin"] = 25f;
