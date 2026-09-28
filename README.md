@@ -56,6 +56,7 @@ timeout 30 godot --headless --path . res://scenes/smoke_limb_rig.tscn
 | Shield / dodge | Shift | Numpad 3 |
 | Menu navigate / confirm / back | W/S, J, K | — |
 | Debug overlay (hitboxes/hurtboxes) | F3 | F3 |
+| All collision shapes (stage, bodies, hurtboxes, attacks) | F4 | F4 |
 | Pause menu | Esc | Esc |
 
 ## Project layout

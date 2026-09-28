@@ -50,6 +50,7 @@ public partial class Arena : Node2D
 
         var debug = new CombatDebugDraw { P1 = _p1, P2 = _p2, Hitboxes = hb, Name = "DebugDraw" };
         AddChild(debug);
+        AddChild(new CollisionOverlay { Name = "CollisionOverlay" });
 
         var pause = new PauseMenu();
         AddChild(pause);
