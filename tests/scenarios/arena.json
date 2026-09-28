@@ -1,0 +1,35 @@
+{
+  "name": "arena-basics",
+  "frames": 351,
+  "input": [
+    { "at": 241, "key": "S", "down": true },
+    { "at": 301, "key": "S", "down": false },
+    { "at": 301, "key": "D", "down": true },
+    { "at": 330, "key": "Space", "down": true },
+    { "at": 351, "key": "Space", "down": false },
+    { "at": 351, "key": "D", "down": false }
+  ],
+  "teleport": [
+    { "at": 180, "player": 1, "to": [56, 40] },
+    { "at": 301, "player": 1, "to": [9, 170] }
+  ],
+  "capture": [
+    { "at": 150, "out": "/tmp/sc_arena_settled.png" },
+    { "at": 320, "out": "/tmp/sc_arena_wallslide.png" }
+  ],
+  "checks": [
+    { "type": "at", "frame": 179, "player": 1,
+      "expect": { "grounded": true, "xNear": 110, "yNear": 150, "tol": 30 } },
+    { "type": "at", "frame": 179, "player": 2,
+      "expect": { "grounded": true, "xNear": 210, "yNear": 150, "tol": 30 } },
+    { "type": "at", "frame": 240, "player": 1,
+      "expect": { "grounded": true, "xNear": 56, "yNear": 70, "tol": 6 } },
+    { "type": "at", "frame": 300, "player": 1,
+      "expect": { "grounded": true, "yGt": 110 } },
+    { "type": "during", "from": 306, "to": 329, "player": 1,
+      "where": { "yBetween": [172, 200], "vyGt": 0 },
+      "expect": { "vyLte": 90 } },
+    { "type": "at", "frame": 350, "player": 1,
+      "expect": { "xLt": 8 } }
+  ]
+}

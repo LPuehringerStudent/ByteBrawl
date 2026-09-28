@@ -34,11 +34,15 @@ godot --path . --editor
 dotnet build                      # compile check
 dotnet test tests/ByteBrawl.Tests # 40 unit tests, no Godot needed
 
-# Headless smoke scenes (require a successful dotnet build FIRST —
+# Headless limb-rig smoke (requires a successful dotnet build FIRST —
 # headless Godot does not rebuild C# on its own):
-timeout 30 godot --headless --path . res://scenes/smoke_arena.tscn
 timeout 30 godot --headless --path . res://scenes/smoke_limb_rig.tscn
-# each must print SMOKE PASS
+# must print SMOKE PASS
+
+# Node-level scenario tests: data-driven input scripts + assertions,
+# rendered via Xvfb (needs xorg-server-xvfb):
+scripts/run-scenario.sh tests/scenarios/arena.json
+# must print SCENARIO PASS arena-basics
 ```
 
 ### Controls (two players, one keyboard)
@@ -137,7 +141,8 @@ Two things worth internalizing before your first change:
 - **TDD**: combat logic changes come with an xUnit test first. Fakes live in
   `tests/ByteBrawl.Tests/TestDoubles.cs`.
 - **Commits**: conventional prefixes (`feat:`, `fix:`, `docs:`, `polish:`).
-- **Verify before pushing**: `dotnet build`, `dotnet test`, both smoke scenes.
+- **Verify before pushing**: `dotnet build`, `dotnet test`, the limb-rig
+  smoke, and the arena scenario (`scripts/run-scenario.sh`).
 - Design docs for larger features go in `docs/superpowers/specs/` with the
   matching plan in `docs/superpowers/plans/` before implementation.
 

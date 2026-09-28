@@ -22,11 +22,14 @@ dotnet test tests/ByteBrawl.Tests
 godot --path .
 
 # Headless smoke tests (timeout guards against hangs)
-timeout 30 godot --headless --path . res://scenes/smoke_arena.tscn
 timeout 30 godot --headless --path . res://scenes/smoke_limb_rig.tscn
+
+# Node-level scenario tests: data-driven input scripts + assertions
+# (needs xorg-server-xvfb; renders via Xvfb so scenario captures work)
+scripts/run-scenario.sh tests/scenarios/arena.json
 ```
 
-A passing smoke run prints `SMOKE PASS`. Note: the `godot` binary must be a .NET (mono) build — the plain GDScript build cannot run C# projects.
+A passing run prints `SMOKE PASS` (limb rig) / `SCENARIO PASS <name>` (scenario). Note: the `godot` binary must be a .NET (mono) build — the plain GDScript build cannot run C# projects.
 
 ## Project structure
 
@@ -53,15 +56,18 @@ A passing smoke run prints `SMOKE PASS`. Note: the `godot` binary must be a .NET
 │       ├── CombatDebugDraw.cs        # Debug overlay: hitboxes, hurtboxes, knockback vectors (F3 or pause menu)
 │       ├── PauseMenu.cs              # Esc pause overlay (resume, hitbox/hurtbox toggles in training, quit)
 │       ├── Main.cs                   # Boot menu (W/S select, J confirm, K quit)
-│       └── SmokeArena.cs, SmokeLimbRig.cs  # Headless smoke-test drivers
+│       ├── ScenarioRunner.cs         # Data-driven node-level test runner (input scripts + assertions + captures)
+│       └── SmokeLimbRig.cs           # Headless limb-rig smoke-test driver
 ├── scenes/
 │   ├── main.tscn           # Boot menu (Local Versus → arena.tscn, Training → arena_training.tscn)
 │   ├── arena.tscn          # Main stage
 │   ├── arena_training.tscn # Same stage with Training = true (P2 is a dummy, no timer/stocks)
 │   ├── fighter.tscn        # Fighter instance scene
-│   ├── smoke_arena.tscn    # Headless arena smoke test
 │   └── smoke_limb_rig.tscn # Headless limb-rig smoke test
-├── tests/ByteBrawl.Tests/  # xUnit unit tests (23 tests)
+├── tests/
+│   ├── ByteBrawl.Tests/    # xUnit unit tests (77 tests)
+│   └── scenarios/          # Node-level scenario JSONs for ScenarioRunner
+├── scripts/run-scenario.sh # Runs a scenario under Xvfb
 └── project.godot
 ```
 
