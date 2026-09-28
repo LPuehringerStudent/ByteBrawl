@@ -21,6 +21,39 @@ public class FighterStateMachineMovementTests
         return (new FighterStateMachine(f, new FakeHitboxManager(), ByteMoveset.Create()), f);
     }
 
+    [Fact] public void HoldDownOnGround_Crouches()
+    {
+        var (fsm, f) = NewFsm();
+        fsm.Update(Neutral() with { MoveY = 1 });
+        Assert.Equal(FighterState.Crouch, fsm.CurrentState);
+        Assert.Equal(0, f.Velocity.X, 0.01f);
+    }
+
+    [Fact] public void CrouchReleaseDown_ReturnsToIdle()
+    {
+        var (fsm, _) = NewFsm();
+        fsm.Update(Neutral() with { MoveY = 1 });
+        fsm.Update(Neutral());
+        Assert.Equal(FighterState.Idle, fsm.CurrentState);
+    }
+
+    [Fact] public void CrouchPlusDirection_StandsUpIntoRun()
+    {
+        var (fsm, f) = NewFsm();
+        fsm.Update(Neutral() with { MoveY = 1 });
+        fsm.Update(Neutral() with { MoveY = 1, MoveX = 1 });
+        Assert.Equal(FighterState.Run, fsm.CurrentState);
+        Assert.Equal(120, f.Velocity.X, 0.01f);
+    }
+
+    [Fact] public void HoldDownInAir_DoesNotCrouch()
+    {
+        var (fsm, f) = NewFsm(false);
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { MoveY = 1 });
+        Assert.Equal(FighterState.Fall, fsm.CurrentState);
+    }
+
     [Fact] public void ShieldHeldOnGround_EntersShield()
     {
         var (fsm, f) = NewFsm();

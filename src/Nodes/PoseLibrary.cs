@@ -28,7 +28,16 @@ public static class PoseLibrary
                 p.Angles["FarUpperArm"] = swing * 0.7f;
                 p.Angles["Torso"] = 5f;
                 break;
-            case FighterState.Jump:
+            case FighterState.Crouch:
+                // Deep squat: thighs swung forward, shins folded back, slight lean.
+                p.Angles["NearThigh"] = 55f;
+                p.Angles["FarThigh"] = 40f;
+                p.Angles["NearShin"] = -70f;
+                p.Angles["FarShin"] = -60f;
+                p.Angles["Torso"] = 15f;
+                p.Angles["NearUpperArm"] = -25f;
+                p.Angles["FarUpperArm"] = -15f;
+                break;
                 p.Angles["NearThigh"] = -30f;
                 p.Angles["FarThigh"] = -15f;
                 p.Angles["NearShin"] = 25f;

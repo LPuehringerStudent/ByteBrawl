@@ -25,7 +25,10 @@ A fighter is two layers:
 
 `FighterState` values and the important transitions (see `Update`/`SetState`):
 
-- `Idle` / `Run` — grounded movement; facing follows input.
+- `Idle` / `Run` / `Crouch` — grounded movement; facing follows input.
+  Holding down with no direction crouches (stationary — pressing a direction
+  stands you up into `Run`; jumping/attacks/shield still work from crouch).
+  Pose-only for now: hurtbox sizes don't change while crouched.
 - `Jump` / `Fall` — airborne; `Jump` while rising, `Fall` otherwise. `Jump`
   while airborne consumes the fighter's air jumps (`FighterStats.AirJumps`, Byte:
   1), reset on landing; hitstun does not refresh it.

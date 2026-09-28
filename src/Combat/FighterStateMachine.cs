@@ -201,6 +201,12 @@ public class FighterStateMachine
                 _fighter.Facing = actions.MoveX > 0 ? 1 : -1;
                 _fighter.Velocity = new Vector2(actions.MoveX * _moveset.Stats.RunSpeed, _fighter.Velocity.Y);
             }
+            else if (actions.MoveY > 0)
+            {
+                // Crouch is stationary: pressing a direction stands you up (into Run).
+                SetState(FighterState.Crouch);
+                _fighter.Velocity = new Vector2(0, _fighter.Velocity.Y);
+            }
             else
             {
                 SetState(FighterState.Idle);
