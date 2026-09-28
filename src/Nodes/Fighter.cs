@@ -26,6 +26,7 @@ public partial class Fighter : CharacterBody2D, IFighter
     public int Facing { get => _facing; set => _facing = value; }
     public bool IsGrounded => IsOnFloor();
     public bool OnPassThroughPlatform { get; private set; }
+    public int WallDirection { get; private set; }
     private int _dropThroughFrames;
     public int HitstunFrames { get; set; }
     public int InvincibleFrames { get; set; }
@@ -59,11 +60,17 @@ public partial class Fighter : CharacterBody2D, IFighter
         Fsm.Update(LocalInput.Capture(PlayerIndex));
         MoveAndSlide();
         OnPassThroughPlatform = false;
+        WallDirection = 0;
         for (var i = 0; i < GetSlideCollisionCount(); i++)
         {
             var collision = GetSlideCollision(i);
-            if (collision.GetNormal().Y < -0.5f && collision.GetCollider() is Node node && node.IsInGroup("oneway"))
-            { OnPassThroughPlatform = true; break; }
+            if (collision.GetCollider() is not Node node) continue;
+            if (collision.GetNormal().Y < -0.5f && node.IsInGroup("oneway"))
+                OnPassThroughPlatform = true;
+            // Wall normal points from the wall toward the fighter; that is
+            // the direction a wall jump should launch.
+            if (Mathf.Abs(collision.GetNormal().X) > 0.5f)
+                WallDirection = (int)Mathf.Sign(collision.GetNormal().X);
         }
         // mirror to face left/right; 0.65 fits the ~33px rig into the 20px-tall collision box
         _rig.Scale = new Vector2(Facing * 0.65f, 0.65f);

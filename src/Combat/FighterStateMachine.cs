@@ -17,6 +17,10 @@ public class FighterStateMachine
     public const float ChargeGroundDrag = 0.8f;
     public const float ChargeMaxFallSpeed = 120f;
 
+    public const float WallSlideSpeed = 70f;   // capped fall speed while touching a wall
+    public const float WallJumpSpeedX = 200f;  // fixed outward hop…
+    public const int WallJumpControlLock = 10; // …with this many frames of no air control
+
     private AttackStage[] _sequence = Array.Empty<AttackStage>();
     private int _nextStageIndex;
     private int _attackTotalFrames = DefaultAttackDuration;
@@ -36,6 +40,8 @@ public class FighterStateMachine
     private int _attackCooldown;
     private AttackData? _currentAttack;
     private int _airJumpsUsed;
+    private int _wallJumpsUsed;
+    private int _wallJumpControlLock;
     private bool _recoveryUsed;
     private bool _attacksLocked;
     private readonly IFighter _fighter;
@@ -56,8 +62,13 @@ public class FighterStateMachine
         if (_fighter.IsGrounded)
         {
             _airJumpsUsed = 0;
+            _wallJumpsUsed = 0;
             _recoveryUsed = false;
             _attacksLocked = false;
+        }
+        else if (_fighter.WallDirection != 0)
+        {
+            _airJumpsUsed = 0; // touching the stage wall refreshes air options
         }
 
         if (_fighter.HitstunFrames > 0)
@@ -153,12 +164,24 @@ public class FighterStateMachine
 
         if (actions.JumpPressed)
         {
-            var groundedJump = _fighter.IsGrounded;
-            var airJump = !groundedJump && _airJumpsUsed < _moveset.Stats.AirJumps;
-            if (groundedJump || airJump)
+            if (!_fighter.IsGrounded && _fighter.WallDirection != 0 && _wallJumpsUsed < 1)
             {
-                _fighter.Velocity = new Vector2(_fighter.Velocity.X, -_moveset.Stats.JumpSpeed);
-                if (airJump) _airJumpsUsed++;
+                // Wall jump: fixed hop away from the wall. Brief input lockout
+                // so holding toward the wall can't cancel the outward momentum.
+                _fighter.Velocity = new Vector2(_fighter.WallDirection * WallJumpSpeedX, -_moveset.Stats.JumpSpeed);
+                _wallJumpsUsed++;
+                _wallJumpControlLock = WallJumpControlLock;
+                SetState(FighterState.Jump);
+            }
+            else
+            {
+                var groundedJump = _fighter.IsGrounded;
+                var airJump = !groundedJump && _airJumpsUsed < _moveset.Stats.AirJumps;
+                if (groundedJump || airJump)
+                {
+                    _fighter.Velocity = new Vector2(_fighter.Velocity.X, -_moveset.Stats.JumpSpeed);
+                    if (airJump) _airJumpsUsed++;
+                }
             }
         }
 
@@ -225,11 +248,16 @@ public class FighterStateMachine
         }
         else
         {
+            if (_wallJumpControlLock > 0) _wallJumpControlLock--;
             if (actions.MoveX != 0)
             {
                 _fighter.Facing = actions.MoveX > 0 ? 1 : -1;
-                _fighter.Velocity = new Vector2(actions.MoveX * _moveset.Stats.RunSpeed, _fighter.Velocity.Y);
+                if (_wallJumpControlLock == 0)
+                    _fighter.Velocity = new Vector2(actions.MoveX * _moveset.Stats.RunSpeed, _fighter.Velocity.Y);
             }
+            // Wall slide: touching a wall while falling caps fall speed.
+            if (_fighter.WallDirection != 0 && _fighter.Velocity.Y > WallSlideSpeed)
+                _fighter.Velocity = new Vector2(_fighter.Velocity.X, WallSlideSpeed);
             SetState(_fighter.Velocity.Y < 0 ? FighterState.Jump : FighterState.Fall);
         }
 

@@ -10,6 +10,10 @@ public interface IFighter
     Vector2 Position { get; set; }
     Vector2 Velocity { get; set; }
     bool IsGrounded { get; }
+    // Direction pointing AWAY from a wall the fighter is touching: +1 = wall
+    // on the left, -1 = wall on the right, 0 = no wall contact. Drives wall
+    // slide and wall jump; touching a wall also refreshes air jumps.
+    int WallDirection { get; }
     // True while standing on a pass-through platform. Down drops through
     // those instead of crouching (FSM reads this; Fighter computes it from
     // its floor collisions each physics frame).

@@ -53,7 +53,14 @@ Built in code by `Arena.BuildStage` (`src/Nodes/Arena.cs`):
   change while crouched.
 - `Jump` / `Fall` — airborne; `Jump` while rising, `Fall` otherwise. `Jump`
   while airborne consumes the fighter's air jumps (`FighterStats.AirJumps`, Byte:
-  1), reset on landing; hitstun does not refresh it.
+  1), reset on landing; hitstun does not refresh it. **Wall tech:** touching a
+  stage wall (any airborne frame with `IFighter.WallDirection != 0`) caps fall
+  speed at `WallSlideSpeed = 70` (wall slide) and refreshes the air jump —
+  you've technically touched the stage. Pressing jump at a wall also performs a
+  **wall jump**: a fixed hop away from the wall (`WallJumpSpeedX = 200` +
+  full jump height) with `WallJumpControlLock = 10` frames of no air control so
+  holding into the wall can't cancel the outward momentum. One wall jump per
+  time airborne; landing resets both wall jumps and air jumps.
 - `LightAttack` / `HeavyAttack` / `Special` — one-shot attack states. Entered via
   `StartAttack`, which builds the stage sequence, sets the cooldown, and spawns
   hitboxes (flat attacks immediately, staged attacks via `TickAttack`).

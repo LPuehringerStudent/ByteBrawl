@@ -74,6 +74,86 @@ public class FighterStateMachineMovementTests
         Assert.Equal(FighterState.Crouch, fsm.CurrentState);
     }
 
+    [Fact] public void FallingAlongWall_SlidesAtCappedSpeed()
+    {
+        var (fsm, f) = NewFsm(false);
+        f.WallDirection = 1; // wall on the left
+        f.Velocity = new Vector2(0, 200);
+        fsm.Update(Neutral());
+        Assert.Equal(FighterStateMachine.WallSlideSpeed, f.Velocity.Y, 0.01f);
+    }
+
+    [Fact] public void RisingAlongWall_FallSpeedNotCapped()
+    {
+        var (fsm, f) = NewFsm(false);
+        f.WallDirection = 1;
+        f.Velocity = new Vector2(0, -50);
+        fsm.Update(Neutral());
+        Assert.Equal(-50, f.Velocity.Y, 0.01f);
+    }
+
+    [Fact] public void WallJump_HopsAwayFromWall()
+    {
+        var (fsm, f) = NewFsm(false);
+        f.WallDirection = -1; // wall on the right
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true });
+        Assert.Equal(-FighterStateMachine.WallJumpSpeedX, f.Velocity.X, 0.01f);
+        Assert.Equal(-280, f.Velocity.Y, 0.01f);
+        Assert.Equal(FighterState.Jump, fsm.CurrentState);
+    }
+
+    [Fact] public void WallJumpWhileHoldingIntoWall_KeepsOutwardMomentum()
+    {
+        var (fsm, f) = NewFsm(false);
+        f.WallDirection = 1; // wall on the left…
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true, MoveX = -1 }); // …while holding into it
+        Assert.Equal(FighterStateMachine.WallJumpSpeedX, f.Velocity.X, 0.01f);
+        for (var i = 1; i < FighterStateMachine.WallJumpControlLock - 1; i++)
+        {
+            fsm.Update(Neutral() with { MoveX = -1 });
+            Assert.Equal(FighterStateMachine.WallJumpSpeedX, f.Velocity.X, 0.01f); // lockout holds
+        }
+        fsm.Update(Neutral() with { MoveX = -1 });
+        Assert.Equal(-120, f.Velocity.X, 0.01f); // control returns after the lockout
+    }
+
+    [Fact] public void WallJump_RefreshesAirJump()
+    {
+        var (fsm, f) = NewFsm(false);
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true }); // air jump #1
+        Assert.Equal(-280, f.Velocity.Y, 0.01f);
+        f.WallDirection = 1; // touch the wall: air options refresh
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true }); // wall jump (takes priority on the wall)
+        Assert.Equal(FighterStateMachine.WallJumpSpeedX, f.Velocity.X, 0.01f);
+        f.WallDirection = 0;
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true }); // the refreshed air jump still works
+        Assert.Equal(-280, f.Velocity.Y, 0.01f);
+    }
+
+    [Fact] public void WallJump_OncePerAirtimeUntilLanding()
+    {
+        var (fsm, f) = NewFsm(false);
+        f.WallDirection = 1;
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true }); // wall jump spent
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true }); // refreshed air jump spent
+        f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true }); // no wall-jump push left…
+        Assert.Equal(0, f.Velocity.X, 0.01f); // …air jump goes straight up, no outward hop
+        Assert.Equal(-280, f.Velocity.Y, 0.01f);
+        f.Grounded = true; f.WallDirection = 0; f.Velocity = Vector2.Zero;
+        fsm.Update(Neutral()); // land: everything restores
+        f.Grounded = false; f.WallDirection = 1; f.Velocity = new Vector2(0, 100);
+        fsm.Update(Neutral() with { JumpPressed = true });
+        Assert.Equal(FighterStateMachine.WallJumpSpeedX, f.Velocity.X, 0.01f);
+    }
+
     [Fact] public void ShieldHeldOnGround_EntersShield()
     {
         var (fsm, f) = NewFsm();

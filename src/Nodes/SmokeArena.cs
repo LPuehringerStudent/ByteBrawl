@@ -1,3 +1,4 @@
+using ByteBrawl.Combat;
 using Godot;
 
 namespace ByteBrawl.Nodes;
@@ -5,6 +6,7 @@ namespace ByteBrawl.Nodes;
 public partial class SmokeArena : Node
 {
     private int _frames;
+    private bool _sawWallSlide;
     private Arena _arena = null!;
 
     public override void _Ready()
@@ -40,9 +42,39 @@ public partial class SmokeArena : Node
         if (_frames == 300)
         {
             InjectKey(Key.S, false);
-            // Fell well past the 16px platform onto the main stage below.
             var ok = p1.Position.Y > 110 && p1.IsOnFloor();
-            GD.Print(ok ? "SMOKE PASS" : $"SMOKE FAIL drop-through p1={p1.Position} grounded={p1.IsOnFloor()}");
+            if (!ok) { Fail($"drop-through p1={p1.Position} grounded={p1.IsOnFloor()}"); return; }
+            // Phase 3: spawn P1 just outside the stage's left wall holding D —
+            // it presses into the wall and should wall-slide at capped speed.
+            p1.Respawn(new Vector2(9, 170), 0);
+            InjectKey(Key.D, true);
+        }
+
+        if (_frames is > 300 and < 330)
+        {
+            if (p1.Position.Y is > 172 and < 200 && p1.Velocity.Y > 0)
+            {
+                // Threshold leaves room for a one-frame-stale read (ordering);
+                // true free-fall through this band is 200+.
+                if (p1.Velocity.Y > FighterStateMachine.WallSlideSpeed + 20)
+                { Fail($"wall slide too fast: vy={p1.Velocity.Y} y={p1.Position.Y}"); return; }
+                _sawWallSlide = true;
+            }
+        }
+
+        if (_frames == 330)
+        {
+            if (!_sawWallSlide) { Fail("never wall-slid along the stage side"); return; }
+            InjectKey(Key.Space, true); // wall jump (D still held: lockout must protect the hop)
+        }
+
+        if (_frames == 350)
+        {
+            InjectKey(Key.Space, false);
+            InjectKey(Key.D, false);
+            // The hop pushed P1 away from the wall (left) despite holding D.
+            var ok = p1.Position.X < 8;
+            GD.Print(ok ? "SMOKE PASS" : $"SMOKE FAIL wall jump x={p1.Position.X} vx={p1.Velocity.X}");
             GetTree().Quit(ok ? 0 : 1);
         }
     }
