@@ -10,7 +10,7 @@ public partial class Arena : Node2D
     private static readonly Vector2[] MainPlatformOutline =
     {
         new(16, 160), new(272, 160), // wide top edge
-        new(192, 208), new(96, 208), // narrow flat bottom: inverted trapezoid
+        new(272, 208), new(16, 208), // straight down from the ledges, flat bottom
     };
     private static readonly Rect2[] ThinPlatforms =
     {
@@ -90,8 +90,9 @@ public partial class Arena : Node2D
 
     private void BuildStage()
     {
-        // Main stage: solid inverted trapezoid (wide top, slanted sides, narrow
-        // flat bottom) so recovering underneath leads toward a ledge, not a wall.
+        // Main stage: solid rectangle — wide top with vertical sides dropping
+        // straight down from the ledge corners, so fighters knocked off hug
+        // the wall (Smash-style) instead of falling straight into the void.
         var main = new StaticBody2D();
         main.AddChild(new CollisionPolygon2D { Polygon = MainPlatformOutline });
         AddChild(main);

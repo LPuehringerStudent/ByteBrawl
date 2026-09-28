@@ -25,10 +25,10 @@ A fighter is two layers:
 
 Built in code by `Arena.BuildStage` (`src/Nodes/Arena.cs`):
 
-- **Main stage** — a solid *inverted trapezoid* (wide flat top at y=160 from
-  x=16–272, sides slanting inward to a narrow flat bottom at y=208). The slanted
-  sides are shallow enough (~29°) to walk, and put a ledge-like geometry under
-  recovering fighters instead of a flat wall.
+- **Main stage** — a solid rectangle (top edge at y=160 from x=16–272, sides
+  dropping straight down to a flat bottom at y=208). Vertical sides below the
+  ledges mean fighters knocked off hug the wall Smash-style instead of falling
+  into the void past a slanted edge.
 - **Thin platforms** (two, at y=80) — *pass-through*: `OneWayCollision = true`
   on the shape, so fighters jump up through them and land on top. They live on
   `Fighter.OneWayPlatformLayer` (collision layer 2) and are in the `"oneway"`
