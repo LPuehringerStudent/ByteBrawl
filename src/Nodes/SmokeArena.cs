@@ -19,6 +19,19 @@ public partial class SmokeArena : Node
         var p1 = _arena.P1;
         var p2 = _arena.P2;
 
+        if (_frames == 10) GetViewport().PushInput(new InputEventKey { PhysicalKeycode = Key.F4, Pressed = true });
+        if (_frames == 11)
+        {
+            if (!_arena.GetNode<CollisionOverlay>("CollisionOverlay").Visible) { Fail("F4 did not show collisions"); return; }
+            GetViewport().PushInput(new InputEventKey { PhysicalKeycode = Key.F4, Pressed = false });
+        }
+        if (_frames == 12) GetViewport().PushInput(new InputEventKey { PhysicalKeycode = Key.F4, Pressed = true });
+        if (_frames == 13)
+        {
+            if (_arena.GetNode<CollisionOverlay>("CollisionOverlay").Visible) { Fail("F4 did not hide collisions"); return; }
+            GetViewport().PushInput(new InputEventKey { PhysicalKeycode = Key.F4, Pressed = false });
+        }
+
         if (_frames == 180)
         {
             var ok = p1.IsOnFloor() && p2.IsOnFloor()

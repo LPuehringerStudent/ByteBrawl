@@ -1,6 +1,8 @@
 # Soldier collision bridge
 
-This branch contains only collision behavior and pose data. It starts from current ByteBrawl `main` and does not copy Soldier sprites, animation scenes, effects, or the separate Soldier game. The older `feat/soldier-physics-hitboxes` branch remains a playable integration prototype.
+This branch contains shared physics, collision behavior and collision pose data. It starts from current ByteBrawl `main` and does not copy Soldier sprites, animation scenes, effects, or the separate Soldier game. The older `feat/soldier-physics-hitboxes` branch remains a playable integration prototype.
+
+`FighterPhysics` extracts the existing directional movement, gravity and pre-hit-percentage knockback calculations. ByteBrawl's controller, state machine and hit rules use the helper with their existing tuning. The same helper is used by the separate Soldier prototype. F4 toggles all active collision geometry in ByteBrawl's arena: blue stage shapes, yellow movement bodies, green hurtboxes and red attack hitboxes. These changes work in the main game immediately; the Soldier-specific pose rig below is a component for the future character integration.
 
 The collision profile stores 15 hurtbox capsules for each of Soldier's 57 animation frames, plus six active jab, cross, and kick attack circles. The profile records positions in Soldier's existing 128 x 128 canvas coordinates relative to the character origin (64, 121). Thigh and shin capsules are separate. Backpack has no hurtbox.
 
